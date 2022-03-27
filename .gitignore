@@ -1,6 +1,3 @@
-
-bank/api/__pycache__/
-
-bank/api/migrations/__pycache__/
-
-bank/bank/__pycache__/
+/.idea
+/.vscode
+**/__pycache__
