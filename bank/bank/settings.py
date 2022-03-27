@@ -89,11 +89,11 @@ WSGI_APPLICATION = 'bank.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'walletdb',
-        'USER': 'postgres',
-        'PASSWORD': 'kappa',
+        'NAME': environ.get("DB_NAME", default="walletdb"),
+        'USER': environ.get("DB_USER", default="postgres"),
+        'PASSWORD': environ.get("DB_PASSWORD", default="kappa"),
         'HOST': 'db',
-        'PORT': '5432',
+        'PORT': environ.get("DB_PORT", default="5432"),
     }
 }
 

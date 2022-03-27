@@ -1,8 +1,9 @@
-# from django.forms import model_to_dict
-# from django.shortcuts import render
-# from rest_framework.response import Response
-# from .models import *
-from rest_framework import generics, viewsets, mixins
+from django.shortcuts import get_object_or_404
+from django.forms import model_to_dict
+from django.http import response
+from rest_framework import generics, viewsets, mixins, status
+from rest_framework.decorators import action
+from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 from .serializers import *
 
@@ -17,3 +18,47 @@ class UsersAPIViewSet(mixins.CreateModelMixin,
     queryset = Users.objects.all()
     serializer_class = UsersSerializer
 
+    @action(methods=["get"], detail=False)
+    def get_usernames(self, request):
+        usernames = self.queryset
+        return Response({"usernames": [i.user for i in usernames]})
+
+
+class WalletsAPIViewSet(mixins.RetrieveModelMixin, mixins.DestroyModelMixin, GenericViewSet):
+    lookup_field = "user"
+    queryset = Wallets.objects.all()
+    serializer_class = WalletsSerializer
+    
+    def get_queryset(self):
+        if 'user' in self.kwargs:
+            return Wallets.objects.filter(user=self.kwargs['user'])
+        else:
+            return Wallets.objects.all()
+
+    def retrieve(self, request, *args, **kwargs):
+        serializer = self.get_serializer(self.get_queryset(), many=True)
+        if "limit" in request.GET:
+            try:
+                return Response(serializer.data[:int(request.GET["limit"])])
+            except ValueError:
+                return Response({"error": "limit parameter must be integer"},
+                                status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.data)
+
+    @action(methods=["post"], detail=True)
+    def create_wallet(self, request, user=None):
+        serializer = WalletsSerializer(data = request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({"wallet": serializer.data})
+
+    @action(methods=['get'], detail=True)
+    def get_by_name(self, request, user=None):
+        if "wallet_name" not in request.GET:
+            return Response({"error": "wallet_name field is required"}, 
+                            status=status.HTTP_400_BAD_REQUEST)
+        wallet_name = request.GET["wallet_name"]
+        wallet = get_object_or_404(Wallets, user=user, wallet_name=wallet_name)
+        wallet_json = model_to_dict(wallet)
+        wallet_json["uuid"] = wallet.pk
+        return Response({"wallet": wallet_json})

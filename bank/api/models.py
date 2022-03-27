@@ -20,7 +20,7 @@ class Wallets(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey("Users", on_delete=models.CASCADE)
     wallet_name = models.CharField(max_length=128, unique=True)
-    cash = models.IntegerField()
+    cash = models.IntegerField(default=10000)
 
     def __str__(self):
         return f"{self.user}: {self.wallet_name}"
