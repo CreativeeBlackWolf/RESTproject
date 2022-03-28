@@ -28,8 +28,8 @@ class Wallets(models.Model):
 
 class Transactions(models.Model):
     """
-    from_wallet: UUID
-    to_wallet: UUID
+    from_wallet: FOREIGN KEY (WALLETS) UUID
+    to_wallet: FOREIGN KEY (WALLETS) UUID
     payment: INTEGER
     comment: CHAR(128)
     """
