@@ -15,3 +15,8 @@ class WalletsSerializer(serializers.ModelSerializer):
         model = Wallets
         fields = ("pk", "wallet_name", "user", "cash")
         # read_only_fields = ["cash"]
+
+class TransactionsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Transactions
+        fields = ("from_wallet", "to_wallet", "payment", "comment", "id")

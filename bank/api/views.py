@@ -24,10 +24,15 @@ class UsersAPIViewSet(mixins.CreateModelMixin,
         return Response({"usernames": [i.user for i in usernames]})
 
 
-class WalletsAPIViewSet(mixins.RetrieveModelMixin, mixins.DestroyModelMixin, GenericViewSet):
+class WalletsAPIViewSet(mixins.RetrieveModelMixin, GenericViewSet):
     lookup_field = "user"
     queryset = Wallets.objects.all()
     serializer_class = WalletsSerializer
+    
+    def convert_to_dict(self, wallet: Wallets) -> dict:
+        wallet_dict = model_to_dict(wallet)
+        wallet_dict["uuid"] = wallet.pk
+        return wallet_dict
     
     def get_queryset(self):
         if 'user' in self.kwargs:
@@ -59,6 +64,22 @@ class WalletsAPIViewSet(mixins.RetrieveModelMixin, mixins.DestroyModelMixin, Gen
                             status=status.HTTP_400_BAD_REQUEST)
         wallet_name = request.GET["wallet_name"]
         wallet = get_object_or_404(Wallets, user=user, wallet_name=wallet_name)
-        wallet_json = model_to_dict(wallet)
-        wallet_json["uuid"] = wallet.pk
+        wallet_json = self.convert_to_dict(wallet)
         return Response({"wallet": wallet_json})
+
+    @action(methods=['post'], detail=True)
+    def delete_wallet(self, request, user=None):
+        wallet_name = request.data.get("wallet_name")
+        if not wallet_name:
+            return Response({"error": "wallet_name field is required"},
+                            status=status.HTTP_400_BAD_REQUEST)
+        wallet = get_object_or_404(Wallets, user=user, wallet_name=wallet_name)
+        wallet_json = self.convert_to_dict(wallet)
+        wallet.delete()
+
+        return Response({"wallet": wallet_json})
+
+
+class TransactionsAPIViewSet(viewsets.ModelViewSet):
+    queryset = Transactions.objects.all()
+    serializer_class = TransactionsSerializer

@@ -33,8 +33,8 @@ class Transactions(models.Model):
     payment: INTEGER
     comment: CHAR(128)
     """
-    from_wallet = models.UUIDField(blank=False)
-    to_wallet = models.UUIDField(blank=False)
+    from_wallet = models.ForeignKey(Wallets, on_delete=models.CASCADE, related_name="from_wallet")
+    to_wallet = models.ForeignKey(Wallets, on_delete=models.CASCADE, related_name="to_wallet")
     payment = models.IntegerField()
     comment = models.CharField(max_length=128)
 

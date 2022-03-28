@@ -21,6 +21,7 @@ from api.views import *
 router = routers.SimpleRouter()
 router.register("users", UsersAPIViewSet)
 router.register("wallets", WalletsAPIViewSet, basename="wallets")
+router.register("transaction", TransactionsAPIViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
