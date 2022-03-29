@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 import uuid
 
 
@@ -20,7 +21,7 @@ class Wallets(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey("Users", on_delete=models.CASCADE)
     wallet_name = models.CharField(max_length=128, unique=True)
-    cash = models.IntegerField(default=10000)
+    balance = models.IntegerField(default=10000)
 
     def __str__(self):
         return f"{self.user}: {self.wallet_name}"
@@ -30,11 +31,12 @@ class Transactions(models.Model):
     """
     from_wallet: FOREIGN KEY (WALLETS) UUID
     to_wallet: FOREIGN KEY (WALLETS) UUID
+    date: DATETIME AUTO
     payment: INTEGER
     comment: CHAR(128)
     """
     from_wallet = models.ForeignKey(Wallets, on_delete=models.CASCADE, related_name="from_wallet")
     to_wallet = models.ForeignKey(Wallets, on_delete=models.CASCADE, related_name="to_wallet")
+    date = models.DateTimeField(auto_now_add=True)
     payment = models.IntegerField()
     comment = models.CharField(max_length=128)
-

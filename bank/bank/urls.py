@@ -16,14 +16,16 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework import routers
-from api.views import *
+from api.views import (UsersAPIViewSet, 
+                       WalletsAPIViewSet, 
+                       TransactionsAPIViewSet)
 
 router = routers.SimpleRouter()
 router.register("users", UsersAPIViewSet)
-router.register("wallets", WalletsAPIViewSet, basename="wallets")
+router.register("wallets", WalletsAPIViewSet)
 router.register("transaction", TransactionsAPIViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/v1/', include(router.urls)),
+    path('api/v1/', include("api.urls", namespace="api")),
 ]

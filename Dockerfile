@@ -9,9 +9,9 @@ ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
 # install dependencies
-RUN pip install --upgrade pip
+RUN pip install --upgrade --no-cache-dir pip
 COPY ./requirements.txt .
-RUN pip install -r requirements.txt
+RUN pip install -r --no-cache-dir requirements.txt
 
 # copy project
 COPY . .

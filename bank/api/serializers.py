@@ -10,13 +10,14 @@ class UsersSerializer(serializers.ModelSerializer):
 
 class WalletsSerializer(serializers.ModelSerializer):
     user = serializers.PrimaryKeyRelatedField(queryset=Users.objects.all())
-    
+
     class Meta:
         model = Wallets
-        fields = ("pk", "wallet_name", "user", "cash")
-        # read_only_fields = ["cash"]
+        fields = ("pk", "wallet_name", "user", "balance")
+        read_only_fields = ("pk", "balance")
 
 class TransactionsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Transactions
         fields = ("from_wallet", "to_wallet", "payment", "comment", "id")
+        read_only_fields = ("id", )
