@@ -1,7 +1,3 @@
-from cgitb import lookup
-from django.shortcuts import get_object_or_404
-from django.forms import model_to_dict
-from django.http import response
 from rest_framework import generics, viewsets, mixins, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -48,7 +44,7 @@ class WalletsAPIViewSet(mixins.RetrieveModelMixin, GenericViewSet):
 
     @action(methods=["post"], detail=True)
     def create_wallet(self, request, user=None):
-        serializer = WalletsSerializer(data = request.data | {"user": user})
+        serializer = WalletsSerializer(data = {**request.data, 'user': user})
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response({"wallet": serializer.data})
@@ -91,9 +87,6 @@ class TransactionsAPIViewSet(GenericViewSet,
             except ValueError:
                 return Response({"error": "limit parameter must be integer"},
                                 status=status.HTTP_400_BAD_REQUEST)
-        # TODO (or not): add from, to, comment and payment parameters
-        # if "from" in request.GET:
-        #     return Response({})
         return Response(serializer.data)
 
     @action(methods=["post"], detail=False)
