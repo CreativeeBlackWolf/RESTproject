@@ -39,4 +39,4 @@ class Transactions(models.Model):
     to_wallet = models.ForeignKey(Wallets, on_delete=models.CASCADE, related_name="to_wallet")
     date = models.DateTimeField(auto_now_add=True)
     payment = models.IntegerField()
-    comment = models.CharField(max_length=128)
+    comment = models.CharField(max_length=128, null=True, blank=True)

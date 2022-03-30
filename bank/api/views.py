@@ -74,7 +74,8 @@ class WalletsAPIViewSet(mixins.RetrieveModelMixin, GenericViewSet):
 
 class TransactionsAPIViewSet(GenericViewSet, 
                              mixins.ListModelMixin, 
-                             mixins.RetrieveModelMixin):
+                             mixins.RetrieveModelMixin,
+                             mixins.DestroyModelMixin):
     # lookup_field = "from_wallet"
     queryset = Transactions.objects.all()
     serializer_class = TransactionsSerializer
@@ -92,11 +93,10 @@ class TransactionsAPIViewSet(GenericViewSet,
     @action(methods=["post"], detail=False)
     def make_transaction(self, request):
         serializer = self.get_serializer(data=request.data)
-        serializer.is_valid()
-        
+        serializer.is_valid(raise_exception=True)
         try:
             make_transfer(**serializer.validated_data)
-        except ValueError as e:
+        except ValueError:
             return Response({"error": "not enough money"}, 
                              status=status.HTTP_400_BAD_REQUEST)
 
