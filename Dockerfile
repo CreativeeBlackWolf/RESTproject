@@ -11,7 +11,7 @@ ENV PYTHONUNBUFFERED 1
 # install dependencies
 RUN pip install --upgrade --no-cache-dir pip
 COPY ./requirements.txt .
-RUN pip install -r --no-cache-dir requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 # copy project
 COPY . .

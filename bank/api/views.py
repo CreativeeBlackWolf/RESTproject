@@ -1,7 +1,9 @@
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import generics, viewsets, mixins, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
+from .filters import TransactionsFilter
 from .serializers import *
 from .services import *
 
@@ -76,19 +78,10 @@ class TransactionsAPIViewSet(GenericViewSet,
                              mixins.ListModelMixin, 
                              mixins.RetrieveModelMixin,
                              mixins.DestroyModelMixin):
-    # lookup_field = "from_wallet"
     queryset = Transactions.objects.all()
     serializer_class = TransactionsSerializer
-
-    def list(self, request, *args, **kwargs):
-        serializer = self.get_serializer(self.get_queryset(), many=True)
-        if "limit" in request.GET:
-            try:
-                return Response(serializer.data[:int(request.GET["limit"])])
-            except ValueError:
-                return Response({"error": "limit parameter must be integer"},
-                                status=status.HTTP_400_BAD_REQUEST)
-        return Response(serializer.data)
+    filter_backends = (DjangoFilterBackend, )
+    filterset_class = TransactionsFilter
 
     @action(methods=["post"], detail=False)
     def make_transaction(self, request):
@@ -101,11 +94,3 @@ class TransactionsAPIViewSet(GenericViewSet,
                              status=status.HTTP_400_BAD_REQUEST)
 
         return Response(serializer.data)
-
-    @action(methods=['get'], detail=False)
-    def get_transactions(self, request):
-        try:
-            check_args(request.GET, "wallet_name")
-        except TypeError as e:
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-        
