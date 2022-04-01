@@ -62,3 +62,16 @@ Returns a list of transactions by GET request.
 - `max_payment`: payment but less or equal.
 - `min_payment`: payment but greater or equal.
 - `comment`: comment for transaction.
+
+### /api/v1/transactions/make_transaction
+
+#### Overview
+
+Creates a transaction from one wallet to another wallet by POST request.
+
+##### POST Parameters
+
+- `from_wallet`: UUID field
+- `to_wallet`: UUID field
+- `payment`: amount of money
+- `comment`: unnecessary field.
