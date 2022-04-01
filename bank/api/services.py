@@ -1,11 +1,10 @@
-from typing import Type
 from django.shortcuts import get_object_or_404
-from .models import Transactions, Wallets
-from django.forms import ValidationError, model_to_dict
+from .models import Transactions, Transfers, Wallets
+from django.forms import model_to_dict
 from django.db import transaction
 
 
-def make_transfer(from_wallet, to_wallet, payment, comment=""):
+def make_transfer(from_wallet, to_wallet, payment, comment="") -> Transactions:
     if from_wallet == to_wallet:
         raise AttributeError("cannot send money to yourself")
     if from_wallet.balance < payment:
@@ -20,7 +19,7 @@ def make_transfer(from_wallet, to_wallet, payment, comment=""):
         to_wallet.balance = to_balance
         to_wallet.save()
 
-        transfer = Transactions.objects.create(
+        transfer = Transfers.objects.create(
             from_wallet = from_wallet,
             to_wallet = to_wallet,
             payment = payment,
@@ -28,6 +27,20 @@ def make_transfer(from_wallet, to_wallet, payment, comment=""):
         )
     
     return transfer
+
+def action_cash(wallet, cash, withdrawal = False) -> Transactions:
+    with transaction.atomic():
+        wallet.balance = wallet.balance + cash if not withdrawal else wallet.balance + cash
+        wallet.save()
+
+        transfer = Transactions.objects.create(
+            from_wallet = wallet,
+            to_wallet = wallet,
+            payment = cash,
+            comment = "Cash withdrawal" if withdrawal else "Cash depositing"
+        )
+    return transfer
+
 
 def get_wallet_dict_by_name(wallet_name):
     wallet = get_object_or_404(Wallets, wallet_name=wallet_name)

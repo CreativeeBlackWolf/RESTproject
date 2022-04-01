@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework import routers
-from api.views import (UsersAPIViewSet, 
+from .views import (TransfersAPIViewSet, UsersAPIViewSet, 
                        WalletsAPIViewSet, 
                        TransactionsAPIViewSet)
 
@@ -11,6 +11,7 @@ router = routers.SimpleRouter()
 router.register("users", UsersAPIViewSet)
 router.register("wallets", WalletsAPIViewSet)
 router.register("transactions", TransactionsAPIViewSet)
+router.register("transfers", TransfersAPIViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import *
+from .models import (Users, Wallets, Transactions, Transfers)
 
 
 class UsersSerializer(serializers.ModelSerializer):
@@ -19,5 +19,11 @@ class WalletsSerializer(serializers.ModelSerializer):
 class TransactionsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Transactions
+        fields = ("wallet", "whence", "payment", "comment", "id")
+        read_only_fields = ("id", )
+
+class TransfersSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Transfers
         fields = ("from_wallet", "to_wallet", "payment", "comment", "id")
         read_only_fields = ("id", )
