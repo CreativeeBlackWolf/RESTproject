@@ -19,7 +19,7 @@ class Wallets(models.Model):
     """
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey("Users", on_delete=models.PROTECT)
-    wallet_name = models.CharField(max_length=128, unique=True)
+    name = models.CharField(max_length=128, unique=True)
     balance = models.IntegerField(default=10000)
 
     def __str__(self):
@@ -46,7 +46,6 @@ class Transactions(models.Model):
             raise ValueError("not enough money")
         
         with transaction.atomic():
-            print(wallet)
             wallet.balance -= payment
             wallet.save()
             transaction = cls.objects.create(
@@ -54,6 +53,19 @@ class Transactions(models.Model):
                 whence = whence,
                 payment = payment,
                 comment = comment
+            )
+        return wallet, transaction
+
+    @classmethod
+    def make_deposit(cls, wallet, payment):
+        with transaction.atomic():
+            wallet.balance += payment
+            wallet.save()
+            transaction = cls.objects.create(
+                wallet = wallet,
+                whence = "ATM",
+                payment = payment,
+                comment = "Deposit cash"
             )
         return wallet, transaction
 

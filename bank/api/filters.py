@@ -5,8 +5,8 @@ from .models import Transactions, Transfers, Wallets
 class TransfersFilter(django_filters.FilterSet):
     max_payment = django_filters.NumberFilter(field_name="payment", lookup_expr="lte")
     min_payment = django_filters.NumberFilter(field_name="payment", lookup_expr="gte")
-    from_wallet_name = django_filters.CharFilter(field_name="from_wallet__wallet_name")
-    to_wallet_name = django_filters.CharFilter(field_name="to_wallet__wallet_name")
+    from_wallet_name = django_filters.CharFilter(field_name="from_wallet__name")
+    to_wallet_name = django_filters.CharFilter(field_name="to_wallet__name")
 
     class Meta:
         model = Transfers
@@ -15,7 +15,7 @@ class TransfersFilter(django_filters.FilterSet):
 class TransactionsFilter(django_filters.FilterSet):
     max_payment = django_filters.NumberFilter(field_name="payment", lookup_expr="lte")
     min_payment = django_filters.NumberFilter(field_name="payment", lookup_expr="gte")
-    wallet_name = django_filters.CharFilter(field_name="wallet__wallet_name")
+    wallet_name = django_filters.CharFilter(field_name="wallet__name")
 
     class Meta:
         model = Transactions
@@ -26,4 +26,4 @@ class WalletsFilter(django_filters.FilterSet):
     min_balance = django_filters.NumberFilter(field_name="balance", lookup_expr="gte")
     class Meta:
         model = Wallets
-        fields = ("wallet_name", "user", "balance")
+        fields = ("name", "user", "balance")
