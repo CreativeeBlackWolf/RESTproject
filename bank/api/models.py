@@ -41,32 +41,31 @@ class Transactions(models.Model):
     comment = models.CharField(max_length=128, null=True, blank=True)
 
     @classmethod
+    @transaction.atomic
     def make_transaction(cls, wallet, whence, payment, comment=""):
         if wallet.balance < payment:
             raise ValueError("not enough money")
-        
-        with transaction.atomic():
-            wallet.balance -= payment
-            wallet.save()
-            transaction = cls.objects.create(
-                wallet = wallet,
-                whence = whence,
-                payment = payment,
-                comment = comment
-            )
+        wallet.balance -= payment
+        wallet.save()
+        transaction = cls.objects.create(
+            wallet = wallet,
+            whence = whence,
+            payment = payment,
+            comment = comment
+        )
         return wallet, transaction
 
     @classmethod
+    @transaction.atomic
     def make_deposit(cls, wallet, payment):
-        with transaction.atomic():
-            wallet.balance += payment
-            wallet.save()
-            transaction = cls.objects.create(
-                wallet = wallet,
-                whence = "ATM",
-                payment = payment,
-                comment = "Deposit cash"
-            )
+        wallet.balance += payment
+        wallet.save()
+        transaction = cls.objects.create(
+            wallet = wallet,
+            whence = "ATM",
+            payment = payment,
+            comment = "Deposit cash"
+        )
         return wallet, transaction
 
 
