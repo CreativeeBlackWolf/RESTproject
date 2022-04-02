@@ -57,14 +57,14 @@ class Transactions(models.Model):
 
     @classmethod
     @transaction.atomic
-    def make_deposit(cls, wallet, payment):
-        wallet.balance += payment
+    def make_ATM_action(cls, wallet, payment, withdraw=False):
+        wallet.balance = wallet.balance + payment if not withdraw else wallet.balance - payment
         wallet.save()
         transaction = cls.objects.create(
             wallet = wallet,
             whence = "ATM",
             payment = payment,
-            comment = "Deposit cash"
+            comment = "Deposit cash" if not withdraw else "Withdraw cash"
         )
         return wallet, transaction
 

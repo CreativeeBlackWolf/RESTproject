@@ -22,6 +22,12 @@ class TransactionsSerializer(serializers.ModelSerializer):
         fields = ("wallet", "whence", "payment", "comment", "id")
         read_only_fields = ("id", )
 
+class TransactionsCashActionsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Transactions
+        fields = ("wallet", "whence", "payment", "comment", "id")
+        read_only_fields = ("id", "whence", "comment")
+
 class TransfersSerializer(serializers.ModelSerializer):
     class Meta:
         model = Transfers

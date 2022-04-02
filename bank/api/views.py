@@ -1,13 +1,17 @@
-from django.http import QueryDict
-from .serializers import TransfersSerializer, UsersSerializer, WalletsSerializer, TransactionsSerializer
+from django.forms import model_to_dict
+from .serializers import (TransactionsCashActionsSerializer, 
+                          UsersSerializer, 
+                          WalletsSerializer, 
+                          TransfersSerializer, 
+                          TransactionsSerializer)
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import generics, viewsets, mixins, status
+from rest_framework import viewsets, mixins, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 from .filters import TransactionsFilter, TransfersFilter, WalletsFilter
-from .models import Users, Wallets, Transactions
-from .services import *
+from .models import Users, Wallets, Transactions, Transfers
+from .services import make_transfer
 
 
 # Create your views here.
@@ -47,6 +51,20 @@ class TransactionsAPIViewSet(mixins.CreateModelMixin,
             return Response({"error": "not enough money"}, 
                             status=status.HTTP_400_BAD_REQUEST)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    @action(methods=["post"], detail=False)
+    def deposit(self, request):
+        serializer = TransactionsCashActionsSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        view = Transactions.make_ATM_action(**serializer.validated_data, withdraw=False)
+        return Response(model_to_dict(view[1]), status=status.HTTP_201_CREATED)
+
+    @action(methods=["post"], detail=False)
+    def withdraw(self, request):
+        serializer = TransactionsCashActionsSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        view = Transactions.make_ATM_action(**serializer.validated_data, withdraw=True)
+        return Response(model_to_dict(view[1]), status=status.HTTP_201_CREATED)
 
 
 class TransfersAPIViewSet(mixins.CreateModelMixin,
