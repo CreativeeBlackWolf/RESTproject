@@ -14,7 +14,7 @@ class Wallets(models.Model):
     """
     id: UUID PK
     user: FOREIGN KEY (Users)
-    wallet_name: CHAR(128)
+    name: CHAR(128)
     cash: INTEGER
     """
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -23,7 +23,7 @@ class Wallets(models.Model):
     balance = models.IntegerField(default=10000)
 
     def __str__(self):
-        return f"{self.user}: {self.wallet_name}"
+        return f"{self.user}: {self.name}"
 
 
 class Transactions(models.Model):
