@@ -2,7 +2,7 @@ from django.db import models, transaction
 import uuid
 
 
-class Users(models.Model):
+class User(models.Model):
     """user: CHAR(128)"""
     user = models.CharField(max_length=128, unique=True)
 
@@ -10,7 +10,7 @@ class Users(models.Model):
         return f"({self.pk}) {self.user}"
 
 
-class Wallets(models.Model):
+class Wallet(models.Model):
     """
     id: UUID PK
     user: FOREIGN KEY (Users)
@@ -26,19 +26,43 @@ class Wallets(models.Model):
         return f"{self.user}: {self.name}"
 
 
-class Transactions(models.Model):
+class Transaction(models.Model):
     """
-    wallet: FOREIGN KEY (WALLETS) UUID
-    date: DATETIME AUTO
+    from_wallet: FOREIGN KEY (WALLETS) UUID
+    to_wallet: FOREIGN KEY (WALLETS) UUID
     whence: CHAR (128)
-    payment: INTEGER
+    date: DATETIME AUTO
+    payment: POSITIVE INTEGER
     comment: CHAR(128)
     """
-    wallet = models.ForeignKey(Wallets, on_delete=models.CASCADE, related_name="trans_wallet")
+    from_wallet = models.ForeignKey(Wallet, 
+                                    on_delete=models.CASCADE, 
+                                    related_name="from_wallet")
+    to_wallet = models.ForeignKey(Wallet, 
+                                  on_delete=models.CASCADE, 
+                                  related_name="to_wallet",
+                                  blank=True,
+                                  null=True)
+    whence = models.CharField(max_length=128,
+                              null=True,
+                              blank=True) # откуда/куда пришла транзакция 
     date = models.DateTimeField(auto_now_add=True)
-    whence = models.CharField(max_length=128) # откуда/куда пришла транзакция 
-    payment = models.IntegerField()
+    payment = models.PositiveIntegerField()
     comment = models.CharField(max_length=128, null=True, blank=True)
+
+    class Meta:
+        constraints = [
+            models.CheckConstraint(
+                # одно из полей 
+                # (в кошелёк или куда/откуда) должно быть заполнено
+                name = "%(app_label)s_%(class)s_to_wallet_or_not",
+                check = (
+                    models.Q(to_wallet__isnull=True, whence__isnull=False)
+                    |
+                    models.Q(to_wallet__isnull=False, whence__isnull=True)
+                )
+            )
+        ]
 
     @classmethod
     @transaction.atomic
@@ -55,33 +79,41 @@ class Transactions(models.Model):
         )
         return wallet, transaction
 
-    @classmethod
-    @transaction.atomic
-    def make_ATM_action(cls, wallet, payment, withdraw=False):
-        wallet.balance = wallet.balance + payment if not withdraw else wallet.balance - payment
-        wallet.save()
-        transaction = cls.objects.create(
-            wallet = wallet,
-            whence = "ATM",
-            payment = payment,
-            comment = "Deposit cash" if not withdraw else "Withdraw cash"
-        )
-        return wallet, transaction
+    # @classmethod
+    # @transaction.atomic
+    # def make_ATM_action(cls, wallet, payment, withdraw=False):
+    #     wallet.balance = wallet.balance + payment if not withdraw else wallet.balance - payment
+    #     wallet.save()
+    #     transaction = cls.objects.create(
+    #         wallet = wallet,
+    #         whence = "ATM",
+    #         payment = payment,
+    #         comment = "Deposit cash" if not withdraw else "Withdraw cash"
+    #     )
+    #     return wallet, transaction
 
 
-class Transfers(models.Model):
-    """
-    from_wallet: FOREIGN KEY (WALLETS) UUID
-    to_wallet: FOREIGN KEY (WALLETS) UUID
-    date: DATETIME AUTO
-    payment: INTEGER
-    comment: CHAR(128)
-    """
-    from_wallet = models.ForeignKey(Wallets, on_delete=models.CASCADE, related_name="from_wallet")
-    to_wallet = models.ForeignKey(Wallets, on_delete=models.CASCADE, related_name="to_wallet")
-    date = models.DateTimeField(auto_now_add=True)
-    payment = models.IntegerField()
-    comment = models.CharField(max_length=128, null=True, blank=True)
+# class Transfer(models.Model):
+#     """
+#     from_wallet: FOREIGN KEY (WALLET) UUID
+#     to_wallet: FOREIGN KEY (WALLET) UUID
+#     date: DATETIME AUTO
+#     payment: INTEGER
+#     comment: CHAR(128)
+#     """
+#     from_wallet = models.ForeignKey(Wallet, 
+#                                     on_delete=models.CASCADE, 
+#                                     related_name="from_wallet")
+    # to_wallet = models.ForeignKey(Wallet, 
+    #                               on_delete=models.CASCADE, 
+    #                               related_name="to_wallet",
+    #                               blank=True)
+    # whence = models.CharField(max_length=128,
+    #                           blank=True,
+    #                           default="To wallet")
+#     date = models.DateTimeField(auto_now_add=True)
+#     payment = models.IntegerField()
+#     comment = models.CharField(max_length=128, null=True, blank=True)
 
-    def __str__(self):
-        return f"{self.to_wallet.user} got {self.payment} from {self.from_wallet.user}"
+#     def __str__(self):
+#         return f"{self.to_wallet.user} got {self.payment} from {self.from_wallet.user}"
