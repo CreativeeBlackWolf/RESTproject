@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from .models import (User, Wallet, Transaction)
+from .models import User, Wallet, Transaction
+from .services import ATMActions
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -20,12 +21,16 @@ class WalletSerializer(serializers.ModelSerializer):
 class TransactionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Transaction
-        fields = ("from_wallet", "to_wallet", "whence", "payment", "comment", "id")
+        fields = ("from_wallet", "to_wallet", 
+                  "whence", "payment", "comment", "id")
         read_only_fields = ("id", )
 
 
 class TransactionCashActionsSerializer(serializers.ModelSerializer):
+    whence = serializers.ChoiceField(
+        choices=[ATMActions.DEPOSIT, ATMActions.WITHDRAW])
+
     class Meta:
         model = Transaction
-        fields = ("wallet", "whence", "payment", "comment", "id")
-        read_only_fields = ("id", "whence", "comment")
+        fields = ("from_wallet", "whence", "payment")
+        read_only_fields = ("id", "comment")

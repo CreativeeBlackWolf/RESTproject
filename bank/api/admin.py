@@ -1,7 +1,6 @@
 from django.contrib import admin
-from .models import (Transfers, Users, Wallets, Transactions)
+from .models import (User, Wallet, Transaction)
 # Register your models here.
-admin.site.register(Users)
-admin.site.register(Wallets)
-admin.site.register(Transactions)
-admin.site.register(Transfers)
+admin.site.register(User)
+admin.site.register(Wallet)
+admin.site.register(Transaction)

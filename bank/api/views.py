@@ -1,4 +1,4 @@
-from django.forms import model_to_dict
+from django.forms import ValidationError
 from .serializers import (TransactionCashActionsSerializer, 
                           UserSerializer, 
                           WalletSerializer, 
@@ -9,26 +9,27 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 from .filters import TransactionsFilter, WalletsFilter
-from .models import Users, Wallets, Transactions
+from .models import User, Wallet, Transaction
 
 
-class UsersAPIViewSet(viewsets.ModelViewSet):
-    queryset = Users.objects.all()
+class UserAPIViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
     serializer_class = UserSerializer
 
 
-class WalletsAPIViewSet(viewsets.ModelViewSet):
-    queryset = Wallets.objects.all()
+class WalletAPIViewSet(viewsets.ModelViewSet):
+    queryset = Wallet.objects.all()
     serializer_class = WalletSerializer
     filter_backends = (DjangoFilterBackend, )
     filterset_class = WalletsFilter
 
-class TransactionsAPIViewSet(mixins.CreateModelMixin,
-                             mixins.RetrieveModelMixin,
-                             mixins.DestroyModelMixin,
-                             mixins.ListModelMixin,
-                             GenericViewSet):
-    queryset = Transactions.objects.all()
+
+class TransactionAPIViewSet(mixins.CreateModelMixin,
+                            mixins.RetrieveModelMixin,
+                            mixins.DestroyModelMixin,
+                            mixins.ListModelMixin,
+                            GenericViewSet):
+    queryset = Transaction.objects.all()
     serializer_class = TransactionSerializer
     filter_backend = (DjangoFilterBackend, )
     filterset_class = TransactionsFilter
@@ -38,7 +39,22 @@ class TransactionsAPIViewSet(mixins.CreateModelMixin,
         serializer.is_valid(raise_exception=True)
         
         try:
-            Transactions.make_transaction(**serializer.validated_data)
+            Transaction.make_transaction(**serializer.validated_data)
+        except ValueError:
+            return Response({"error": "not enough money"}, 
+                            status=status.HTTP_400_BAD_REQUEST)
+        except ValidationError as error:
+            return Response(error.message_dict, 
+                            status=status.HTTP_400_BAD_REQUEST)
+        
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    @action(methods=["post"], detail=False)
+    def ATM_action(self, request):
+        serializer = TransactionCashActionsSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        try:
+            Transaction.make_transaction(**serializer.validated_data)
         except ValueError:
             return Response({"error": "not enough money"}, 
                             status=status.HTTP_400_BAD_REQUEST)

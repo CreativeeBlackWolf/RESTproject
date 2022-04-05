@@ -93,7 +93,7 @@ DATABASES = {
         'NAME': environ.get("DB_NAME", default="walletdb"),
         'USER': environ.get("DB_USER", default="postgres"),
         'PASSWORD': environ.get("DB_PASSWORD", default="kappa"),
-        'HOST': 'db',
+        'HOST': environ.get("DB_HOST", default="db"),
         'PORT': environ.get("DB_PORT", default="5432"),
     }
 }
