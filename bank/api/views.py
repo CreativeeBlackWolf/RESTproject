@@ -8,7 +8,7 @@ from rest_framework import viewsets, mixins, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
-from .filters import TransactionsFilter, WalletsFilter
+from .filters import TransactionFilter, WalletFilter
 from .models import User, Wallet, Transaction
 
 
@@ -21,7 +21,7 @@ class WalletAPIViewSet(viewsets.ModelViewSet):
     queryset = Wallet.objects.all()
     serializer_class = WalletSerializer
     filter_backends = (DjangoFilterBackend, )
-    filterset_class = WalletsFilter
+    filterset_class = WalletFilter
 
 
 class TransactionAPIViewSet(mixins.CreateModelMixin,
@@ -32,7 +32,7 @@ class TransactionAPIViewSet(mixins.CreateModelMixin,
     queryset = Transaction.objects.all()
     serializer_class = TransactionSerializer
     filter_backend = (DjangoFilterBackend, )
-    filterset_class = TransactionsFilter
+    filterset_class = TransactionFilter
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
