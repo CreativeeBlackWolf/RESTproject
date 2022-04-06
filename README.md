@@ -80,7 +80,7 @@ Returns users list by GET request and creates a user by POST request.
 - `from_wallet_name`: wallet name (wow)
 - `to_wallet`: wallet UUID for wallet that got payment
 - `payment`: amount of money
-- `whence`: where/from the money were sent/recieved
+- `whence`: where/from the money were sent/received
 - `max_payment`: less or equal payment
 - `min_payment`: greater or equal payment
 - `comment`: comment for transaction
@@ -88,7 +88,7 @@ Returns users list by GET request and creates a user by POST request.
 ##### POST Parameters
 
 - `from_wallet`: wallet UUID
-- _OR_ `to_wallet`: wallet UUID that recieves payment
+- _OR_ `to_wallet`: wallet UUID that receives payment
 - _OR_ `whence`: where to send money
 - `payment`: amount of money to send
 - `comment`: payment comment
