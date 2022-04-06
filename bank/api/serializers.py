@@ -1,6 +1,5 @@
 from rest_framework import serializers
 from .models import User, Wallet, Transaction
-from .services import ATMActions
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -28,7 +27,8 @@ class TransactionSerializer(serializers.ModelSerializer):
 
 class TransactionCashActionsSerializer(serializers.ModelSerializer):
     whence = serializers.ChoiceField(
-        choices=[ATMActions.DEPOSIT, ATMActions.WITHDRAW])
+        choices=[Transaction.ATMActions.DEPOSIT, 
+                 Transaction.ATMActions.WITHDRAW])
 
     class Meta:
         model = Transaction

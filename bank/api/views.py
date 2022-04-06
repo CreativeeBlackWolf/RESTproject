@@ -38,24 +38,19 @@ class TransactionAPIViewSet(mixins.CreateModelMixin,
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         
-        try:
-            Transaction.make_transaction(**serializer.validated_data)
-        except ValueError:
-            return Response({"error": "not enough money"}, 
-                            status=status.HTTP_400_BAD_REQUEST)
-        except ValidationError as error:
-            return Response(error.message_dict, 
-                            status=status.HTTP_400_BAD_REQUEST)
-        
+        result = Transaction.make_transaction(**serializer.validated_data)
+        if isinstance(result, dict):
+            return Response(result, status=status.HTTP_400_BAD_REQUEST)
+
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @action(methods=["post"], detail=False)
     def ATM_action(self, request):
         serializer = TransactionCashActionsSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        try:
-            Transaction.make_transaction(**serializer.validated_data)
-        except ValueError:
-            return Response({"error": "not enough money"}, 
-                            status=status.HTTP_400_BAD_REQUEST)
+        
+        result = Transaction.make_transaction(**serializer.validated_data)
+        if isinstance(result, dict):
+            return Response(result, status=status.HTTP_400_BAD_REQUEST)
+
         return Response(serializer.data, status=status.HTTP_201_CREATED)
