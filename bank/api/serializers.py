@@ -1,23 +1,36 @@
 from rest_framework import serializers
-from .models import *
+from .models import User, Wallet, Transaction
 
 
-class UsersSerializer(serializers.ModelSerializer):
+class UserSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Users
+        model = User
         fields = '__all__'
 
 
-class WalletsSerializer(serializers.ModelSerializer):
-    user = serializers.PrimaryKeyRelatedField(queryset=Users.objects.all())
+class WalletSerializer(serializers.ModelSerializer):
+    user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
 
     class Meta:
-        model = Wallets
-        fields = ("pk", "wallet_name", "user", "balance")
+        model = Wallet
+        fields = ("pk", "name", "user", "balance")
         read_only_fields = ("pk", "balance")
 
-class TransactionsSerializer(serializers.ModelSerializer):
+
+class TransactionSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Transactions
-        fields = ("from_wallet", "to_wallet", "payment", "comment", "id")
+        model = Transaction
+        fields = ("from_wallet", "to_wallet", 
+                  "whence", "payment", "comment", "id")
         read_only_fields = ("id", )
+
+
+class TransactionCashActionsSerializer(serializers.ModelSerializer):
+    whence = serializers.ChoiceField(
+        choices=[Transaction.DEPOSIT, 
+                 Transaction.WITHDRAW])
+
+    class Meta:
+        model = Transaction
+        fields = ("from_wallet", "whence", "payment")
+        read_only_fields = ("id", "comment")
