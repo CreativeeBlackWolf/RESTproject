@@ -1,6 +1,5 @@
 from django.db import models, transaction
 import uuid
-from django.forms import ValidationError
 
 
 class User(models.Model):
@@ -40,6 +39,11 @@ class Transaction(models.Model):
     payment: POSITIVE INTEGER
     comment: CHAR(128)
     """
+    # constants
+    DEPOSIT = "ATM Deposit"
+    WITHDRAW = "ATM Withdraw"
+    
+    # model fields
     from_wallet = models.ForeignKey(Wallet, 
                                     on_delete=models.CASCADE, 
                                     related_name="from_wallet",
@@ -70,13 +74,10 @@ class Transaction(models.Model):
                     models.Q(to_wallet__isnull=True, whence__isnull=False)
                     |
                     models.Q(to_wallet__isnull=False, whence__isnull=True)
+
                 )
             )
         ]
-
-    class ATMActions:
-        DEPOSIT = "ATM Deposit"
-        WITHDRAW = "ATM Withdraw"
 
 
     @classmethod
@@ -86,11 +87,10 @@ class Transaction(models.Model):
             return {"error": "one of fields 'from_wallet' or 'whence' must have a value."}
         # если счёта зачисления нет
         if whence:
-            if whence is Transaction.ATMActions.DEPOSIT:
+            if whence is Transaction.DEPOSIT:
                 from_wallet.balance += payment
             else:
                 if from_wallet.balance < payment:
-                    # raise ValueError("not enough money")
                     return {"error": "not enough money"}
                 from_wallet.balance -= payment
             from_wallet.save()

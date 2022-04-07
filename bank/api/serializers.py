@@ -27,8 +27,8 @@ class TransactionSerializer(serializers.ModelSerializer):
 
 class TransactionCashActionsSerializer(serializers.ModelSerializer):
     whence = serializers.ChoiceField(
-        choices=[Transaction.ATMActions.DEPOSIT, 
-                 Transaction.ATMActions.WITHDRAW])
+        choices=[Transaction.DEPOSIT, 
+                 Transaction.WITHDRAW])
 
     class Meta:
         model = Transaction
