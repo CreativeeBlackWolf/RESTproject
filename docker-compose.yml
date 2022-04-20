@@ -14,6 +14,17 @@ services:
     depends_on:
       - db
 
+  bot:
+    build:
+      context: .
+    volumes:
+      - ./bot:/bank/bot
+    command: sh -c "uvicorn bot.main:app --host 0.0.0.0 --port 2727 --reload"
+    ports:
+      - "2727:2727"
+    env_file:
+      - ./.env
+
   db:
     image: postgres:13-alpine
     volumes:
