@@ -1,17 +1,31 @@
-from vkbottle import Bot, Callback, GroupEventType, GroupTypes, Keyboard, ShowSnackbarEvent, KeyboardButtonColor
-from vkbottle.bot import Message
-from vkbottle.callback import BotCallback
+from bot.bot import Bot
 from bot.settings import get_bot_settings
-from bot.utils.keyboard import KEYBOARD
-
-config = get_bot_settings()
-
-TOKEN = config.token
-callback = BotCallback(url=config.url, title="WalletBot")
-bot = Bot(token=TOKEN, callback=callback)
+from bot.utils.keyboard import MainKeyboard, WalletsKeyboard
 
 
-@bot.on.message(text="info")
-async def send_callback_button(message: Message):
-    await message.answer(keyboard=KEYBOARD, message="fuck you")
+config = get_bot_settings().dict()
+bot = Bot(**config)
 
+
+@bot.commands.handle(text="hello there")
+def hello_command(message: dict):
+    bot.vk.messages.send(peer_id=message["from_id"], 
+                         random_id=0, 
+                         message="hi o/",
+                         keyboard=MainKeyboard())
+
+
+@bot.commands.handle(text="Кошельки")
+def wallets_keyboard(message: dict):
+    bot.vk.messages.send(peer_id=message["from_id"],
+                         random_id=0,
+                         message="Методы кошельков",
+                         keyboard=WalletsKeyboard())
+
+
+@bot.commands.handle(text="back_button")
+def back_button_event(event: dict):
+    bot.vk.messages.send(peer_id=event["peer_id"],
+                         random_id=0,
+                         message="goin' back",
+                         keyboard=MainKeyboard())
