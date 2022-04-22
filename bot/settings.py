@@ -14,6 +14,21 @@ class BotSettings(BaseSettings):
         env_prefix = "BOT_"
         env_file = ".env"
 
+
+class RedisSettings(BaseSettings):
+    host: str
+    port: int
+
+    class Config:
+        env_prefix = "REDIS_"
+        env_file = ".env"
+
+
+@lru_cache
+def get_redis_settings() -> RedisSettings:
+    return RedisSettings()
+
+
 @lru_cache
 def get_bot_settings() -> BotSettings:
     return BotSettings()

@@ -1,24 +1,21 @@
-from bot.bot import Bot
-from bot.settings import get_bot_settings
-from bot.utils.keyboard import MainKeyboard, WalletsKeyboard
+from bot.handlers.handler_config import bot
+from bot.utils.keyboard import MainKeyboard, WalletsKeyboard, TransactionsKeyboard
 from bot.schemas.message import MessageEvent, MessageNew
+from bot.utils.redis_utils import is_registered_user
 
-
-config = get_bot_settings().dict()
-bot = Bot(**config)
 
 def default(message: MessageNew):
     bot.vk.messages.send(peer_id=message.peer_id, 
                          random_id=0, 
                          message="что.",
-                         keyboard=MainKeyboard())
+                         keyboard=MainKeyboard(is_registered_user(message.from_id)))
 
-@bot.commands.handle_command(text="hello there")
+
+@bot.commands.handle_command(text="ping")
 def hello_command(message: MessageNew):
     bot.vk.messages.send(peer_id=message.peer_id, 
                          random_id=0, 
-                         message="hi o/",
-                         keyboard=MainKeyboard())
+                         message="pong")
 
 
 @bot.commands.handle_command(text="Кошельки")
@@ -29,12 +26,12 @@ def wallets_keyboard(message: MessageNew):
                          keyboard=WalletsKeyboard())
 
 
-@bot.commands.handle_event(event="back_button")
-def back_button_event(event: MessageEvent):
-    bot.vk.messages.send(peer_id=event.peer_id,
+@bot.commands.handle_command(text="Транзакции")
+def transactions_keyboard(message: MessageNew):
+    bot.vk.messages.send(peer_id=message.peer_id,
                          random_id=0,
-                         message="Возвращаемся в главное меню",
-                         keyboard=MainKeyboard())
+                         message="Методы транзакций",
+                         keyboard=TransactionsKeyboard())
 
 
 bot.commands.default_message_handler = default

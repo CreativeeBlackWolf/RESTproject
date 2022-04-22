@@ -24,6 +24,10 @@ services:
       - "2727:2727"
     env_file:
       - ./.env
+    depends_on:
+      - web
+      - redis
+      - db
 
   db:
     image: postgres:13-alpine
@@ -36,17 +40,14 @@ services:
     ports:
       - "5432:5432"
 
-  pgadmin:
-    container_name: pgadmin4_container
-    image: dpage/pgadmin4
-    restart: always
-    environment:
-      PGADMIN_DEFAULT_EMAIL: admin@admin.com
-      PGADMIN_DEFAULT_PASSWORD: root
+  redis:
+    image: redis:latest
     ports:
-      - "5050:80"
-    logging:
-      driver: none
+      - "6379:6379"
+    volumes:
+      - "./config/redis.conf:/redis.conf"
+    command: ["redis-server", "/redis.conf"]
+
 
 volumes:
   postgres_data:

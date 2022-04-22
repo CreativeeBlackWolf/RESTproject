@@ -13,8 +13,6 @@ class MessageBase(BaseModel):
 
     # response["object"]
     peer_id: int
-    from_id: Optional[int] = None
-    user_id: Optional[int] = None
 
     # if from_id is not equal to peer_id
     # =>
@@ -23,10 +21,12 @@ class MessageBase(BaseModel):
 
 class MessageNew(MessageBase):
     text: str
+    from_id: int
     fwd_messages: List[Any]
 
 
 class MessageEvent(MessageBase):
+    user_id: int
     payload: Dict[str, Any]
 
 
