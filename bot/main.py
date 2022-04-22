@@ -34,6 +34,6 @@ async def index(request: Request, background_task: BackgroundTasks):
     # If the secrets match, then the message definitely came from our bot
     if data["secret"] == secret:
         # Running the process in the background, because the logic can be complicated
-        background_task.add_task(bot.handle_command, data)
+        background_task.add_task(bot.handle_events, data)
 
     return Response("ok")

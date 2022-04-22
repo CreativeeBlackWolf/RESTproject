@@ -4,8 +4,8 @@ import uuid
 
 class User(models.Model):
     """user: CHAR(128)"""
-    user = models.CharField(max_length=128, unique=True, 
-                            verbose_name="Username")
+    id = models.IntegerField(primary_key=True)
+    user = models.CharField(max_length=128, verbose_name="Username")
 
     def __str__(self):
         return f"({self.pk}) {self.user}"

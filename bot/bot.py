@@ -4,6 +4,7 @@ from typing import Optional
 from random import choice
 from string import ascii_lowercase, ascii_uppercase
 from bot.commands.handler import BotCommands
+from bot.schemas.message import serialize_message, MessageEventTypes
 
 
 class Bot:
@@ -54,7 +55,7 @@ class Bot:
                 return server["id"]
         return None
 
-    def set_callback_settings(self, server_id: int, params: Dict[str, Any]):
+    def set_callback_settings(self, server_id: int, params: Dict[str, bool]):
         data = {
             "group_id": self.group_id,
             "server_id": server_id
@@ -72,7 +73,8 @@ class Bot:
             "url": self.url,
             "title": self.server_title
         }
-        return self.api.method("groups.addCallbackServer", values=data)["id"]
+        result = self.api.method("groups.addCallbackServer", values=data)
+        return result["server_id"]
 
     def edit_callback_server(self, server_id: int, secret_key: Optional[str] = None) -> None:
         if secret_key is None:
@@ -108,8 +110,9 @@ class Bot:
             self.edit_callback_server(server_id)
         return confirmation_code, secret
 
-    def handle_command(self, data):
-        if data["type"] == "message_new":
-            self.commands.call_command(data["object"]["message"]["text"], data["object"]["message"])
-        elif data["type"] == "message_event":
-            self.commands.call_command(data["object"]["payload"]["cmd"], data["object"])
+    def handle_events(self, data):
+        message = serialize_message(data)
+        if message.type == MessageEventTypes.MESSAGE_NEW:
+            self.commands.call_command(message.text, message)
+        elif message.type == MessageEventTypes.MESSAGE_EVENT:
+            self.commands.call_event(message.payload["cmd"], message)
