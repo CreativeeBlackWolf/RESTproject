@@ -18,7 +18,9 @@ def MainKeyboard(registered_user: bool = False):
 def WalletsKeyboard():
     keyboard = VkKeyboard()
     keyboard.add_button(label="Создать кошелёк", color=VkKeyboardColor.PRIMARY)
-    keyboard.add_button(label="Просмотреть кошельки", color=VkKeyboardColor.SECONDARY)
+    keyboard.add_callback_button(label="Просмотреть кошельки", 
+                                 color=VkKeyboardColor.SECONDARY,
+                                 payload={"cmd": "user_wallets"})
     keyboard.add_line()
     keyboard.add_callback_button(label="Назад", 
                                  payload={"cmd": "back_button"},

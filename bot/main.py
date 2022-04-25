@@ -1,14 +1,14 @@
 from fastapi import BackgroundTasks, FastAPI, Request, Response
 from bot.handlers.handler_config import bot
 from bot.handlers import commands_handler, events_handler
-from bot.api.api_requests import APIRequest
+from bot.api.api_requests import UserAPIRequest
 from bot.utils.redis_utils import add_new_users
 from time import sleep
 
 
 # sleep(3) # wait until django will be loaded (kappa)
 app = FastAPI()
-wallets_api = APIRequest()
+wallets_api = UserAPIRequest()
 confirmation_code: str
 secret: str
 
