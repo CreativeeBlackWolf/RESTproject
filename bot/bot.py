@@ -4,6 +4,7 @@ from typing import Optional
 from random import choice
 from string import ascii_lowercase, ascii_uppercase
 from bot.commands.handler import BotCommands
+from bot.commands.step_handler import StepHandler
 from bot.schemas.message import serialize_message, MessageEventTypes
 
 
@@ -25,6 +26,7 @@ class Bot:
         self.secret = secret or self.__generate_secret_key()
         self.server_title = server_title or "MyCallbackServer"
         self.commands = commands or BotCommands()
+        self.steps = StepHandler()
 
     @staticmethod
     def __generate_secret_key() -> str:
@@ -113,6 +115,9 @@ class Bot:
     def handle_events(self, data):
         message = serialize_message(data)
         if message.type == MessageEventTypes.MESSAGE_NEW:
-            self.commands.call_command(message.text, message)
+            if message.peer_id in self.steps.handlers:
+                self.steps.process_next_step(message.from_id, message)
+            else:
+                self.commands.call_command(message.text, message)
         elif message.type == MessageEventTypes.MESSAGE_EVENT:
             self.commands.call_event(message.payload["cmd"], message)

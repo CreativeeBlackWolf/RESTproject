@@ -23,6 +23,7 @@ class MessageNew(MessageBase):
     text: str
     from_id: int
     fwd_messages: List[Any]
+    payload: str = None
 
 
 class MessageEvent(MessageBase):

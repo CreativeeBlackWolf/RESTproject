@@ -1,8 +1,10 @@
-from bot.utils.keyboard import MainKeyboard, WalletsKeyboard, TransactionsKeyboard
+from bot.utils.keyboard import (EmptyKeyboard, MainKeyboard, UserWalletsKeyboard, 
+                                WalletsKeyboard)
 from bot.utils.redis_utils import is_registered_user, add_new_users
 from bot.handlers.handler_config import bot
 from bot.schemas.message import MessageEvent
 from bot.api.api_requests import UserAPIRequest, WalletAPIRequest
+from bot.handlers.steps_handler import process_new_wallet, transactions_to_or_whence_step
 
 
 user_api = UserAPIRequest()
@@ -27,6 +29,11 @@ def register_user_event(event: MessageEvent):
         bot.vk.messages.send(peer_id=event.peer_id,
                              random_id=0,
                              message="Ты успешно зарегистрировался!",
+                             keyboard=MainKeyboard(True))
+    elif status == 400:
+         bot.vk.messages.send(peer_id=event.peer_id,
+                             random_id=0,
+                             message="Ты уже зарегистрирован.",
                              keyboard=MainKeyboard(True))
     else:
         bot.vk.messages.send(peer_id=event.peer_id,
@@ -62,3 +69,26 @@ f"""
                              random_id=0,
                              message=f"Что-то пошло не так... ({status}). Сообщи об этом.",
                              keyboard=MainKeyboard())
+
+
+@bot.commands.handle_event(event="create_wallet")
+def create_wallet(event: MessageEvent):
+    bot.vk.messages.send(peer_id=event.peer_id,
+                         message="Придумай имя своему кошельку.",
+                         random_id=0,
+                         keyboard=EmptyKeyboard())
+    bot.steps.register_next_step_handler(event.user_id, process_new_wallet)
+
+
+@bot.commands.handle_event(event="make_transaction")
+def make_transaction(event: MessageEvent):
+    user_wallets, status = wallet_api.get_user_wallets(event.user_id)
+    if status == 200 and user_wallets:
+        bot.vk.messages.send(peer_id=event.peer_id,
+                            message="Выбери свой кошелёк из списка.",
+                            random_id=0,
+                            keyboard=UserWalletsKeyboard(user_wallets))
+        bot.steps.register_next_step_handler(event.user_id, transactions_to_or_whence_step)
+    else:
+        # TODO
+        pass
