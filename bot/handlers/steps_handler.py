@@ -3,6 +3,7 @@ from bot.api.api_requests import WalletAPIRequest, TransactionsAPIRequest
 from bot.schemas.message import MessageNew
 from bot.utils.keyboard import MainKeyboard, UserWalletsKeyboard, WalletsKeyboard
 from bot.utils.redis_utils import is_registered_user
+from bot.utils.check import find_urls
 import json
 
 
@@ -46,18 +47,32 @@ def transactions_to_or_whence_step(message: MessageNew):
     transactions[message.from_id] = {"from_wallet": payload["UUID"]}
     bot.vk.messages.send(peer_id=message.peer_id,
                          random_id=0,
-                         message=f"Введи ID пользователя в ВК или куда ты хочешь перевести деньги.")
+                         message=f"Введи ID пользователя в ВК (можно ссылкой) или куда ты хочешь перевести деньги.")
     bot.steps.register_next_step_handler(message.from_id, transactions_check_vk_id)
 
 def transactions_check_vk_id(message: MessageNew):
     try:
-        user_id = int(message.text)
+        if urls := find_urls(message.text):
+            for url in urls:
+                if "vk.com/" in url:
+                    user = bot.vk.users.get(user_ids=url.split("/")[-1])[0]
+                    if not user:
+                        bot.vk.messages.send(peer_id=message.peer_id,   
+                                             random_id=0,
+                                             message="Ссылка введена неверно или такого пользователя не существует",
+                                             keyboard=MainKeyboard(True))
+                        return
+                    user_id = user["id"]
+
+        else:
+            user_id = int(message.text)
         if not is_registered_user(user_id):
             bot.vk.messages.send(peer_id=message.peer_id,
                              random_id=0,
                              message="Такой пользователь не зарегистрирован в системе. Возвращаюсь.",
                              keyboard=MainKeyboard(True))
             return
+        
         wallets, status = wallets_api.get_user_wallets(user_id)
         if status == 200:
             if not wallets:
@@ -124,6 +139,7 @@ def transactions_final_step(message: MessageNew):
         transactions[message.from_id]["comment"] = None
     transaction_data = transactions.pop(message.from_id, None)
     transaction, status = transactions_api.make_transaction(**transaction_data)
+    print(transaction_data)
     if status == 201:
         bot.vk.messages.send(peer_id=message.peer_id,
                              random_id=0,

@@ -37,7 +37,7 @@ def WalletsKeyboard():
 def TransactionsKeyboard():
     keyboard = VkKeyboard()
     keyboard.add_callback_button(label="Просмотреть последние транзакции",
-                                 payload={"cmd": "view_latest_transactions"},
+                                 payload={"cmd": "show_transactions"},
                                  color=VkKeyboardColor.PRIMARY)
     keyboard.add_line()
     keyboard.add_callback_button(label="Перевести деньги",

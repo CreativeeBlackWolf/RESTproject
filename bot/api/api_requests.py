@@ -73,3 +73,7 @@ class TransactionsAPIRequest(DefaultAPIRequest):
         }
         request = self.session.post(self.transactions_api, data=data)
         return request.json(), request.status_code
+
+    def get_user_transactions(self, user_id: int) -> Tuple[List[dict], int]:
+        request = self.session.get(self.transactions_api + f"?from_user={user_id}")
+        return request.json()[:10], request.status_code

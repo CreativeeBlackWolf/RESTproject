@@ -1,14 +1,17 @@
-from bot.utils.keyboard import (EmptyKeyboard, MainKeyboard, UserWalletsKeyboard, 
-                                WalletsKeyboard)
+from pytz import timezone
+from bot.utils.keyboard import (EmptyKeyboard, MainKeyboard, TransactionsKeyboard,
+                                UserWalletsKeyboard, WalletsKeyboard)
 from bot.utils.redis_utils import is_registered_user, add_new_users
 from bot.handlers.handler_config import bot
 from bot.schemas.message import MessageEvent
-from bot.api.api_requests import UserAPIRequest, WalletAPIRequest
+from bot.api.api_requests import TransactionsAPIRequest, UserAPIRequest, WalletAPIRequest
 from bot.handlers.steps_handler import process_new_wallet, transactions_to_or_whence_step
+from datetime import datetime
 
 
 user_api = UserAPIRequest()
 wallet_api = WalletAPIRequest()
+transaction_api = TransactionsAPIRequest()
 
 
 @bot.commands.handle_event(event="back_button")
@@ -84,11 +87,42 @@ def create_wallet(event: MessageEvent):
 def make_transaction(event: MessageEvent):
     user_wallets, status = wallet_api.get_user_wallets(event.user_id)
     if status == 200 and user_wallets:
-        bot.vk.messages.send(peer_id=event.peer_id,
-                            message="Выбери свой кошелёк из списка.",
+        if user_wallets:
+            bot.vk.messages.send(peer_id=event.peer_id,
+                                message="Выбери свой кошелёк из списка.",
+                                random_id=0,
+                                keyboard=UserWalletsKeyboard(user_wallets))
+            bot.steps.register_next_step_handler(event.user_id, transactions_to_or_whence_step)
+        else:
+            bot.vk.messages.send(peer_id=event.peer_id,
+                            message="Пока что у тебя нет кошельков.",
                             random_id=0,
-                            keyboard=UserWalletsKeyboard(user_wallets))
-        bot.steps.register_next_step_handler(event.user_id, transactions_to_or_whence_step)
-    else:
-        # TODO
-        pass
+                            keyboard=TransactionsKeyboard())
+
+
+@bot.commands.handle_event(event="show_transactions")
+def show_latest_transactions(event: MessageEvent):
+    user_transactions, status = transaction_api.get_user_transactions(event.user_id)
+    if status == 200:
+        if not user_transactions:
+            message = "Ты пока что не совершал перевдов."
+        else:
+            message = "Переводы:\n"
+            for transaction in user_transactions:
+                # TODO: timezone
+                date = datetime.strptime(transaction["date"], "%Y-%m-%dT%H:%M:%S.%fZ")
+                formatted_date = date.strftime("%d %B %Y %H:%M:%S")
+                message += \
+f"""
+Из кошелька: {transaction["from_wallet_name"]}
+Куда: {transaction["whence"] if transaction["whence"] 
+       else "на кошелёк " + transaction["to_wallet_name"]}
+Когда: {formatted_date}
+Комментарий к переводу: {transaction["comment"] if transaction["comment"]
+                         else "<Без комментария>"}
+"""
+
+        bot.vk.messages.send(peer_id=event.user_id,
+                             random_id=0,
+                             message=message,
+                             keyboard=TransactionsKeyboard())
