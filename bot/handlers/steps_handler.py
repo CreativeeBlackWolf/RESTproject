@@ -3,7 +3,6 @@ from bot.api.api_requests import WalletAPIRequest, TransactionsAPIRequest
 from bot.schemas.message import MessageNew
 from bot.utils.keyboard import MainKeyboard, UserWalletsKeyboard, WalletsKeyboard
 from bot.utils.redis_utils import is_registered_user
-from bot.utils.check import is_valid_uuid
 import json
 
 
