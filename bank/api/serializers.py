@@ -23,7 +23,8 @@ class TransactionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Transaction
         fields = ("from_wallet", "from_wallet_name", "to_wallet", 
-                  "to_wallet_name", "whence", "payment", "comment", "id")
+                  "to_wallet_name", "whence", "date", 
+                  "payment", "comment", "id")
         read_only_fields = ("id", )
 
 
