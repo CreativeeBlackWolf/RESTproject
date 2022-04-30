@@ -1,8 +1,10 @@
-from bot.handlers.handler_config import bot
 from bot.api.api_requests import WalletAPIRequest, TransactionsAPIRequest
-from bot.schemas.message import MessageNew
-from bot.utils.keyboard import MainKeyboard, UserWalletsKeyboard, WalletsKeyboard
+from bot.utils.keyboard import MainKeyboard, UserWalletsKeyboard
 from bot.utils.redis_utils import is_registered_user
+from bot.handlers.basic_answers import stop_message, wrong_input_message
+from bot.handlers.handler_config import bot
+from bot.schemas.message import MessageNew
+from vk_api.utils import get_random_id
 from bot.utils.check import find_urls
 import json
 
@@ -12,42 +14,24 @@ transactions_api = TransactionsAPIRequest()
 transactions = {}
 
 
-def stop_message(message: MessageNew):
-    bot.vk.messages.send(peer_id=message.peer_id,
-                         random_id=0,
-                         message="Возвращаюсь в главное меню.",
-                         keyboard=MainKeyboard(True))
-
-def process_new_wallet(message: MessageNew):
-    _, status = wallets_api.create_new_wallet(message.from_id, message.text)
-    if status == 201:
-        bot.vk.messages.send(peer_id=message.peer_id,
-                             random_id=0,
-                             message=f"Кошелёк \"{message.text}\" успешно создан!",
-                             keyboard=WalletsKeyboard())
-    elif status == 401:
-        message = "Кошелёк с таким названием уже существует. Придумай что-нибудь другое..."
-        bot.vk.messages.send(peer_id=message.peer_id,
-                             random_id=0,
-                             message=message,
-                             keyboard=WalletsKeyboard())
-    else:
-        bot.vk.messages.send(peer_id=message.peer_id,
-                             random_id=0,
-                             message=f"Что-то пошло не так... ({status}). Сообщи об этом.",
-                             keyboard=MainKeyboard())
-
-
 def transactions_to_or_whence_step(message: MessageNew):
     if message.text.lower() in ("стоп", "stop"):
         stop_message(message)
         return
     global transactions
-    payload = json.loads(message.payload)
+
+    if message.payload:
+        payload = json.loads(message.payload)
+    else:
+        wrong_input_message(message)
+        return
+
     transactions[message.from_id] = {"from_wallet": payload["UUID"]}
-    bot.vk.messages.send(peer_id=message.peer_id,
-                         random_id=0,
-                         message=f"Введи ID пользователя в ВК (можно ссылкой) или куда ты хочешь перевести деньги.")
+    bot.vk.messages.send(
+        peer_id=message.peer_id,         
+        random_id=get_random_id(),
+        message=f"Введи ID пользователя в ВК (можно ссылкой) или куда ты хочешь перевести деньги."
+    )
     bot.steps.register_next_step_handler(message.from_id, transactions_check_vk_id)
 
 def transactions_check_vk_id(message: MessageNew):
@@ -57,10 +41,12 @@ def transactions_check_vk_id(message: MessageNew):
                 if "vk.com/" in url:
                     user = bot.vk.users.get(user_ids=url.split("/")[-1])[0]
                     if not user:
-                        bot.vk.messages.send(peer_id=message.peer_id,   
-                                             random_id=0,
-                                             message="Ссылка введена неверно или такого пользователя не существует",
-                                             keyboard=MainKeyboard(True))
+                        bot.vk.messages.send(
+                            peer_id=message.peer_id,   
+                            random_id=get_random_id(),
+                            message="Ссылка введена неверно или такого пользователя не существует",
+                            keyboard=MainKeyboard(True)
+                        )
                         return
                     user_id = user["id"]
 
@@ -68,7 +54,7 @@ def transactions_check_vk_id(message: MessageNew):
             user_id = int(message.text)
         if not is_registered_user(user_id):
             bot.vk.messages.send(peer_id=message.peer_id,
-                             random_id=0,
+                             random_id=get_random_id(),
                              message="Такой пользователь не зарегистрирован в системе. Возвращаюсь.",
                              keyboard=MainKeyboard(True))
             return
@@ -77,18 +63,19 @@ def transactions_check_vk_id(message: MessageNew):
         if status == 200:
             if not wallets:
                 bot.vk.messages.send(peer_id=message.peer_id,
-                             random_id=0,
+                             random_id=get_random_id(),
                              message="У пользователя с таким ID нет кошельков. Возвращаюсь",
                              keyboard=MainKeyboard(True))
                 return
             bot.vk.messages.send(peer_id=message.peer_id,
-                                 random_id=0,
+                                 random_id=get_random_id(),
                                  message="Выбери кошелёк получателя.",
                                  keyboard=UserWalletsKeyboard(wallets))
             global transactions
             transactions[message.from_id]["recipient_id"] = user_id
             bot.steps.register_next_step_handler(message.from_id, transactions_payment_step)
     except ValueError:
+        transactions[message.from_id]["recipient_id"] = None
         transactions_payment_step(message)
 
 def transactions_payment_step(message: MessageNew):
@@ -105,10 +92,9 @@ def transactions_payment_step(message: MessageNew):
         transactions[message.from_id]["to_wallet"] = None
         transactions[message.from_id]["whence"] = message.text
     bot.vk.messages.send(peer_id=message.peer_id,
-                         random_id=0,
+                         random_id=get_random_id(),
                          message="Сколько перевести?")
     bot.steps.register_next_step_handler(message.from_id, transactions_comment_step)
-    
 
 def transactions_comment_step(message: MessageNew):
     if message.text.lower() in ("стоп", "stop"):
@@ -119,12 +105,12 @@ def transactions_comment_step(message: MessageNew):
         transactions[message.from_id]["payment"] = int(message.text)
     except ValueError:
         bot.vk.messages.send(peer_id=message.peer_id,
-                             random_id=0,
+                             random_id=get_random_id(),
                              message="Количество переводимых средств должно быть целым числом.",
                              keyboard=MainKeyboard(True))
         return
     bot.vk.messages.send(peer_id=message.peer_id,
-                         random_id=0,
+                         random_id=get_random_id(),
                          message="Оставьте комментарий (введите \"нет\", если не нужно).")
     bot.steps.register_next_step_handler(message.peer_id, transactions_final_step)
 
@@ -139,10 +125,9 @@ def transactions_final_step(message: MessageNew):
         transactions[message.from_id]["comment"] = None
     transaction_data = transactions.pop(message.from_id, None)
     transaction, status = transactions_api.make_transaction(**transaction_data)
-    print(transaction_data)
     if status == 201:
         bot.vk.messages.send(peer_id=message.peer_id,
-                             random_id=0,
+                             random_id=get_random_id(),
                              message="Перевод отправлен!",
                              keyboard=MainKeyboard(True))
         if transaction_data["recipient_id"] is not None:
@@ -153,5 +138,5 @@ f"""Пополнение на {transaction_data['payment']} от {recipient['fir
 Комментарий к переводу: {transaction_data['comment']}
 """
             bot.vk.messages.send(peer_id=transaction_data["recipient_id"],
-                                 random_id=0,
+                                 random_id=get_random_id(),
                                  message=message)

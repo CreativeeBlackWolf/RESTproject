@@ -1,12 +1,14 @@
+from requests.adapters import HTTPAdapter
 from typing import Optional, Tuple, List
+from bot.settings import get_api_settings
 from uuid import UUID
 import requests
-from requests.adapters import HTTPAdapter
 
 
 class DefaultAPIRequest:
     def __init__(self) -> None:
-        self.default_url = "http://web:8000/api/v1/"
+        config = get_api_settings()
+        self.default_url = f"http://{config.host}:{config.port}/api/v1/"
         self.session = requests.session()
         self.session.mount("http://", HTTPAdapter(max_retries=5))
 
@@ -47,6 +49,17 @@ class WalletAPIRequest(DefaultAPIRequest):
         request = self.session.post(self.wallets_url, data=data)
         return request.json(), request.status_code
 
+    def edit_user_wallet(self, wallet: UUID, new_name: str, user_id: int) -> Tuple[dict, int]:
+        data = {
+            "name": new_name, 
+            "user": user_id
+        }
+        request = self.session.put(self.wallets_url + f"{wallet}/", data=data)
+        return request.json(), request.status_code
+
+    def delete_wallet(self, wallet: UUID):
+        request = self.session.delete(self.wallets_url + f"{wallet}/")
+        return request.status_code
 
 class TransactionsAPIRequest(DefaultAPIRequest):
     def __init__(self) -> None:
@@ -74,6 +87,6 @@ class TransactionsAPIRequest(DefaultAPIRequest):
         request = self.session.post(self.transactions_api, data=data)
         return request.json(), request.status_code
 
-    def get_user_transactions(self, user_id: int) -> Tuple[List[dict], int]:
+    def get_user_transactions(self, user_id: int, limit: int=5) -> Tuple[List[dict], int]:
         request = self.session.get(self.transactions_api + f"?from_user={user_id}")
-        return request.json()[:10], request.status_code
+        return request.json()[:limit], request.status_code

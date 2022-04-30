@@ -1,5 +1,6 @@
-from typing import Callable, Dict, List
+from typing import Callable, Dict
 from bot.schemas.message import MessageNew
+import logging
 
 
 class StepHandler:
@@ -19,4 +20,4 @@ class StepHandler:
             function = self.get_next_handler(peer_id)
             function(message)
         except Exception as e:
-            print(e)
+            logging.exception("An error has occured: ")
