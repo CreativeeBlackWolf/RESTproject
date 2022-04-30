@@ -30,6 +30,7 @@ class Bot:
 
     @staticmethod
     def __generate_secret_key() -> str:
+        # pseudorandom generation of secret. redo?
         return "".join([choice(ascii_lowercase + ascii_uppercase) for _ in range(32)])
 
     def __get_group_id(self) -> None:         
@@ -114,6 +115,10 @@ class Bot:
 
     def handle_events(self, data):
         message = serialize_message(data)
+        # not handling messages from conversations
+        if message.from_conversation:
+            return
+
         if message.type == MessageEventTypes.MESSAGE_NEW:
             if message.peer_id in self.steps.handlers:
                 self.steps.process_next_step(message.from_id, message)

@@ -14,10 +14,10 @@ class MessageBase(BaseModel):
     # response["object"]
     peer_id: int
 
-    # if from_id is not equal to peer_id
+    # if from_id|user_id is not equal to peer_id
     # =>
     # we've got a message from some conversation
-    # from_conversation: bool = not (from_id == peer_id)
+    from_conversation: Optional[bool] = None
 
 class MessageNew(MessageBase):
     text: str
@@ -33,12 +33,18 @@ class MessageEvent(MessageBase):
 
 def serialize_message(data: dict) -> Union[MessageNew, MessageEvent, None]:
     if data["type"] == "message_new":
+        peer_id = data["object"]["message"]["peer_id"]
+        from_id = data["object"]["message"]["from_id"]
         return MessageNew(
             type = data["type"],
+            from_conversation=peer_id != from_id,
             **data["object"]["message"]
         )
     elif data["type"] == "message_event":
+        peer_id = data["object"]["peer_id"]
+        user_id = data["object"]["user_id"]
         return MessageEvent(
             type = data["type"],
+            from_conversation=peer_id != user_id,
             **data["object"]
         )
