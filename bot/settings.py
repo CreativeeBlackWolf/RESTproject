@@ -24,6 +24,19 @@ class RedisSettings(BaseSettings):
         env_file = ".env"
 
 
+class APISetings(BaseSettings):
+    host: str
+    port: int = 8000
+
+    class Config:
+        env_prefix = "API_"
+        env_file = ".env"
+
+
+@lru_cache
+def get_api_settings() -> APISetings:
+    return APISetings()
+
 @lru_cache
 def get_redis_settings() -> RedisSettings:
     return RedisSettings()
