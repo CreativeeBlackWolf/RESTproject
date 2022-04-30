@@ -29,7 +29,7 @@ class TransactionAPIViewSet(mixins.CreateModelMixin,
                             mixins.DestroyModelMixin,
                             mixins.ListModelMixin,
                             GenericViewSet):
-    queryset = Transaction.objects.all()
+    queryset = Transaction.objects.all().order_by("-id")
     serializer_class = TransactionSerializer
     filter_backend = (DjangoFilterBackend, )
     filterset_class = TransactionFilter
