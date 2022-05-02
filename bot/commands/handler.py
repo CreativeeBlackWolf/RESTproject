@@ -32,9 +32,8 @@ class BotCommands:
             raise ValueError(f"Handler must be Callable, not {type(value)}")
 
     def default_handler(self, func: Callable):
-        def wrapper(*args, **kwargs):
-            self._default_message_handler = func
-        return wrapper
+        """Decorator to define default message handler"""
+        self._default_message_handler = func
 
     def handle_command(self, text: str):
         def wrapper(func: Callable):

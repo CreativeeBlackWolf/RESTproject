@@ -4,6 +4,7 @@ from bot.handlers.handler_config import bot
 from bot.schemas.message import MessageNew
 
 
+@bot.commands.default_handler
 def default(message: MessageNew):
     bot.send_message(message, 
                      text="что.",
@@ -28,6 +29,3 @@ def transactions_keyboard(message: MessageNew):
     bot.send_message(message, 
                      text="Методы транзакций",
                      keyboard=TransactionsKeyboard())
-
-
-bot.commands.default_message_handler = default
