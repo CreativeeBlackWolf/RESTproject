@@ -65,7 +65,8 @@ f"""
 @bot.commands.handle_event(event="create_wallet")
 def create_wallet(event: MessageEvent):
     bot.send_message(event,
-                     text="Придумай имя своему кошельку.")
+                     text="Придумай имя своему кошельку.",
+                     keyboard=EmptyKeyboard())
     bot.steps.register_next_step_handler(event.user_id, process_new_wallet)
 
 
@@ -98,7 +99,7 @@ f"""
 Из кошелька: {transaction["from_wallet_name"]}
 Кому: {transaction["to_wallet_user"] if transaction["to_wallet_user"] is not None
 else "<Сторонний сервис>"}
-Куда: {transaction["whence"] if transaction["whence"] is not None 
+Куда: {transaction["whence"] if transaction["whence"] is not None
        else "на кошелёк " + transaction["to_wallet_name"]}
 Размер платежа: {transaction["payment"]}
 Когда: {formatted_date}
@@ -126,21 +127,14 @@ def show_edit_keyboard(event: MessageEvent):
                              keyboard=WalletsKeyboard())
 
 
-@bot.commands.handle_event(event="edit_wallet")
+@bot.commands.handle_event(event=["delete_wallet", "edit_wallet"])
 def edit_user_wallet(event: MessageEvent):
     wallets, status = wallet_api.get_user_wallets(event.user_id)
     if status == 200:
         bot.send_message(event,
                          text="Выбери кошелёк из списка",
                          keyboard=UserWalletsKeyboard(wallets))
-        bot.steps.register_next_step_handler(event.user_id, edit_choice_step)
-
-
-@bot.commands.handle_event(event="delete_wallet")
-def delete_user_wallet(event: MessageEvent):
-    wallets, status = wallet_api.get_user_wallets(event.user_id)
-    if status == 200:
-        bot.send_message(event,
-                         text="Выбери кошелёк из списка",
-                         keyboard=UserWalletsKeyboard(wallets))
-        bot.steps.register_next_step_handler(event.user_id, delete_step)
+        if event.payload["cmd"] == "edit_wallet":
+            bot.steps.register_next_step_handler(event.user_id, edit_choice_step)
+        else:
+            bot.steps.register_next_step_handler(event.user_id, delete_step)

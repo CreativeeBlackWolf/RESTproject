@@ -29,8 +29,7 @@ def process_new_wallet(message: MessageNew):
 
 def edit_choice_step(message: MessageNew):
     if message.payload:
-        global wallets
-        payload = json.loads(message.payload)    
+        payload = json.loads(message.payload)
         wallets[message.from_id] = {"wallet": payload["UUID"]}
         bot.send_message(message,
                          text="Придумай имя своему кошельку.")
@@ -39,7 +38,6 @@ def edit_choice_step(message: MessageNew):
         wrong_input_message(message)
 
 def edit_final_step(message: MessageNew):
-    global wallets
     wallet = wallets.pop(message.from_id)["wallet"]
     _, status = wallets_api.edit_user_wallet(wallet, message.text, message.from_id)
     if status == 200:

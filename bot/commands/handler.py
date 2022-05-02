@@ -1,4 +1,4 @@
-from typing import Callable, Dict
+from typing import Callable, Collection, Dict, Union
 
 from bot.schemas.message import MessageEvent, MessageNew
 
@@ -41,9 +41,13 @@ class BotCommands:
             self._commands.update({text: func})
         return wrapper
 
-    def handle_event(self, event: str):
+    def handle_event(self, event: Union[str, Collection]):
         def wrapper(func: Callable):
-            self._events.update({event: func})
+            if isinstance(event, str):
+                self._events.update({event: func})
+            else:
+                for e in event:
+                    self._events.update({e: func})
         return wrapper
 
     def call_command(self, text, message: MessageNew):

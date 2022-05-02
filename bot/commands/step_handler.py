@@ -19,5 +19,5 @@ class StepHandler:
         try:
             function = self.get_next_handler(peer_id)
             function(message)
-        except Exception as e:
+        except Exception:
             logging.exception("An error has occured: ")

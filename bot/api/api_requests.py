@@ -51,7 +51,7 @@ class WalletAPIRequest(DefaultAPIRequest):
 
     def edit_user_wallet(self, wallet: UUID, new_name: str, user_id: int) -> Tuple[dict, int]:
         data = {
-            "name": new_name, 
+            "name": new_name,
             "user": user_id
         }
         request = self.session.put(self.wallets_url + f"{wallet}/", data=data)

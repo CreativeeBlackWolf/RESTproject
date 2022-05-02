@@ -134,7 +134,7 @@ class Bot:
         message: Union[MessageEvent, MessageNew], 
         text: str, 
         peer_id: int = None,
-        keyboard: str = VkKeyboard.get_empty_keyboard()
+        keyboard: str = None
     ):
         """Sends a message and answers on event."""
         if isinstance(message, MessageEvent):
@@ -143,7 +143,12 @@ class Bot:
                                                     peer_id=message.peer_id)
         if peer_id is None:
             peer_id = message.peer_id
-        self.vk.messages.send(peer_id=peer_id,
-                              random_id=get_random_id(),
-                              message=text,
-                              keyboard=keyboard)
+        if not keyboard:
+            self.vk.messages.send(peer_id=peer_id,
+                                  random_id=get_random_id(),
+                                  message=text)
+        else:
+            self.vk.messages.send(peer_id=peer_id,
+                                  random_id=get_random_id(),
+                                  message=text,
+                                  keyboard=keyboard)

@@ -18,7 +18,6 @@ def transactions_to_or_whence_step(message: MessageNew):
     if message.text.lower() in ("стоп", "stop"):
         stop_message(message)
         return
-    global transactions
 
     if message.payload:
         payload = json.loads(message.payload)
@@ -28,7 +27,7 @@ def transactions_to_or_whence_step(message: MessageNew):
 
     transactions[message.from_id] = {"from_wallet": payload["UUID"]}
     bot.send_message(message,
-        text=f"Введи ID пользователя в ВК (можно ссылкой) или куда ты хочешь перевести деньги."
+        text="Введи ID пользователя в ВК (можно ссылкой) или куда ты хочешь перевести деньги."
     )
     bot.steps.register_next_step_handler(message.from_id, transactions_check_vk_id)
 
@@ -64,7 +63,7 @@ def transactions_check_vk_id(message: MessageNew):
             bot.send_message(message,
                              text="Выбери кошелёк получателя.",
                              keyboard=UserWalletsKeyboard(wallets))
-            global transactions
+    
             transactions[message.from_id]["recipient_id"] = user_id
             bot.steps.register_next_step_handler(message.from_id, transactions_payment_step)
     except ValueError:
@@ -75,7 +74,6 @@ def transactions_payment_step(message: MessageNew):
     if message.text.lower() in ("стоп", "stop"):
         stop_message(message)
         return
-    global transactions
     # if uuid is given
     if message.payload:    
         payload = json.loads(message.payload)
@@ -92,7 +90,6 @@ def transactions_comment_step(message: MessageNew):
     if message.text.lower() in ("стоп", "stop"):
         stop_message(message)
         return
-    global transactions
     try:
         transactions[message.from_id]["payment"] = int(message.text)
     except ValueError:
@@ -108,7 +105,6 @@ def transactions_final_step(message: MessageNew):
     if message.text.lower() in ("стоп", "stop"):
         stop_message(message)
         return
-    global transactions
     if message.text.lower() not in ("нет", "н", "no", "n"):
         transactions[message.from_id]["comment"] = message.text
     else:
