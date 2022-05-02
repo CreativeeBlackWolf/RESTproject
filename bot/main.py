@@ -2,7 +2,6 @@ from fastapi import BackgroundTasks, FastAPI, Request, Response
 from bot.handlers import commands_handler, events_handler
 from bot.api.api_requests import UserAPIRequest
 from bot.utils.redis_utils import add_new_users
-from requests.exceptions import ConnectionError
 from bot.handlers.handler_config import bot
 from json.decoder import JSONDecodeError
 from time import sleep

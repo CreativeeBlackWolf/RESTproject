@@ -67,11 +67,11 @@ class TransactionsAPIRequest(DefaultAPIRequest):
         self.transactions_api = self.default_url + "transactions/"
 
     def make_transaction(
-        self, 
-        from_wallet: UUID, 
+        self,
+        from_wallet: UUID,
         payment: int,
-        to_wallet: UUID = None, 
-        whence: str = None, 
+        to_wallet: UUID = None,
+        whence: str = None,
         comment: Optional[str] = None,
         *args, **kwargs
     ) -> Tuple[dict, int]:

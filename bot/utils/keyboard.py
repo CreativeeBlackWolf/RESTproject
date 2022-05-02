@@ -16,10 +16,10 @@ def MainKeyboard(registered_user: bool = False):
     keyboard = VkKeyboard()
     keyboard.add_button(label="Кошельки", color=VkKeyboardColor.PRIMARY)
     keyboard.add_button(label="Транзакции", color=VkKeyboardColor.POSITIVE)
-    
+
     if not registered_user:
         keyboard.add_line()
-        keyboard.add_callback_button(label="Зарегистрироваться", 
+        keyboard.add_callback_button(label="Зарегистрироваться",
                                      payload={"cmd": "register_user"},
                                      color=VkKeyboardColor.NEGATIVE)
 
@@ -27,11 +27,11 @@ def MainKeyboard(registered_user: bool = False):
 
 def WalletsKeyboard():
     keyboard = VkKeyboard()
-    keyboard.add_callback_button(label="Создать кошелёк", 
+    keyboard.add_callback_button(label="Создать кошелёк",
                                  color=VkKeyboardColor.PRIMARY,
                                  payload={"cmd": "create_wallet"})
-    
-    keyboard.add_callback_button(label="Просмотреть кошельки", 
+
+    keyboard.add_callback_button(label="Просмотреть кошельки",
                                  color=VkKeyboardColor.SECONDARY,
                                  payload={"cmd": "user_wallets"})
     keyboard.add_line()
@@ -63,7 +63,7 @@ def UserWalletsKeyboard(wallets: list):
                             payload={"UUID": wallet["pk"]})
         if k != len(wallets) - 1:
             keyboard.add_line()
-    
+
     return keyboard.get_keyboard()
 
 def EditWalletsKeyboard():
@@ -71,7 +71,7 @@ def EditWalletsKeyboard():
     keyboard.add_callback_button(label="Редактировать кошелёк",
                                  color=VkKeyboardColor.PRIMARY,
                                  payload={"cmd": "edit_wallet"})
-    
+
     keyboard.add_callback_button(label="Удалить кошелёк",
                                  color=VkKeyboardColor.NEGATIVE,
                                  payload={"cmd": "delete_wallet"})

@@ -19,23 +19,23 @@ class WalletSerializer(serializers.ModelSerializer):
 
 class TransactionSerializer(serializers.ModelSerializer):
     from_wallet_name = serializers.CharField(source="from_wallet.name", read_only=True)
-    to_wallet_name = serializers.CharField(source="to_wallet.name", 
-                                           allow_null=True, 
+    to_wallet_name = serializers.CharField(source="to_wallet.name",
+                                           allow_null=True,
                                            read_only=True)
-    to_wallet_user = serializers.CharField(source="to_wallet.user.user", 
+    to_wallet_user = serializers.CharField(source="to_wallet.user.user",
                                            allow_null=True,
                                            read_only=True)
     class Meta:
         model = Transaction
-        fields = ("from_wallet", "from_wallet_name", "to_wallet", 
-                  "to_wallet_name", "to_wallet_user", "whence", "date", 
+        fields = ("from_wallet", "from_wallet_name", "to_wallet",
+                  "to_wallet_name", "to_wallet_user", "whence", "date",
                   "payment", "comment", "id")
         read_only_fields = ("id", )
 
 
 class TransactionCashActionsSerializer(serializers.ModelSerializer):
     whence = serializers.ChoiceField(
-        choices=[Transaction.DEPOSIT, 
+        choices=[Transaction.DEPOSIT,
                  Transaction.WITHDRAW])
 
     class Meta:

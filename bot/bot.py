@@ -1,18 +1,17 @@
-from bot.schemas.message import (MessageEvent, MessageNew, 
+from bot.schemas.message import (MessageEvent, MessageNew,
                                 serialize_message, MessageEventTypes)
 from string import ascii_lowercase, ascii_uppercase
 from bot.commands.step_handler import StepHandler
 from typing import Any, Dict, List, Tuple, Union, Optional
 from bot.commands.handler import BotCommands
 from vk_api.utils import get_random_id
-from vk_api.keyboard import VkKeyboard
 from vk_api import vk_api
 from random import choice
 
 
 class Bot:
     def __init__(
-        self, 
+        self,
         token: str,
         url: Optional[str] = None,
         group_id: Optional[str] = None,
@@ -35,12 +34,12 @@ class Bot:
         # pseudorandom generation of secret. redo?
         return "".join([choice(ascii_lowercase + ascii_uppercase) for _ in range(32)])
 
-    def __get_group_id(self) -> None:         
+    def __get_group_id(self) -> None:
         return self.api.method("groups.getById", values={})[0]["id"]
 
     def get_confirmation_code(self) -> str:
         return self.api.method(
-            "groups.getCallbackConfirmationCode", 
+            "groups.getCallbackConfirmationCode",
             values={
                 "group_id": self.group_id
             }
@@ -69,9 +68,7 @@ class Bot:
         self.api.method("groups.setCallbackSettings", values=data)
 
     def add_callback_server(self) -> int:
-        """
-            returns server id
-        """
+        """returns server id"""
         data = {
             "group_id": self.group_id,
             "secret_key": self.secret,
@@ -130,9 +127,9 @@ class Bot:
             self.commands.call_event(message.payload["cmd"], message)
 
     def send_message(
-        self, 
-        message: Union[MessageEvent, MessageNew], 
-        text: str, 
+        self,
+        message: Union[MessageEvent, MessageNew],
+        text: str,
         peer_id: int = None,
         keyboard: str = None
     ):
