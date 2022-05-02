@@ -1,11 +1,13 @@
-from typing import Any, Dict, List, Tuple
-from vk_api import vk_api
-from typing import Optional
-from random import choice
+from bot.schemas.message import (MessageEvent, MessageNew, 
+                                serialize_message, MessageEventTypes)
 from string import ascii_lowercase, ascii_uppercase
-from bot.commands.handler import BotCommands
 from bot.commands.step_handler import StepHandler
-from bot.schemas.message import serialize_message, MessageEventTypes
+from typing import Any, Dict, List, Tuple, Union, Optional
+from bot.commands.handler import BotCommands
+from vk_api.utils import get_random_id
+from vk_api.keyboard import VkKeyboard
+from vk_api import vk_api
+from random import choice
 
 
 class Bot:
@@ -126,3 +128,22 @@ class Bot:
                 self.commands.call_command(message.text, message)
         elif message.type == MessageEventTypes.MESSAGE_EVENT:
             self.commands.call_event(message.payload["cmd"], message)
+
+    def send_message(
+        self, 
+        message: Union[MessageEvent, MessageNew], 
+        text: str, 
+        peer_id: int = None,
+        keyboard: str = VkKeyboard.get_empty_keyboard()
+    ):
+        """Sends a message and answers on event."""
+        if isinstance(message, MessageEvent):
+            self.vk.messages.sendMessageEventAnswer(event_id=message.event_id,
+                                                    user_id=message.user_id,
+                                                    peer_id=message.peer_id)
+        if peer_id is None:
+            peer_id = message.peer_id
+        self.vk.messages.send(peer_id=peer_id,
+                              random_id=get_random_id(),
+                              message=text,
+                              keyboard=keyboard)

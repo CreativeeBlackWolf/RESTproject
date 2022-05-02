@@ -6,7 +6,7 @@ class MessageEventTypes:
     MESSAGE_NEW = "message_new"
     MESSAGE_EVENT = "message_event"
 
-# TODO: do a message model and serialize them in another files
+
 class MessageBase(BaseModel):
     # response root
     type: str
@@ -29,6 +29,7 @@ class MessageNew(MessageBase):
 class MessageEvent(MessageBase):
     user_id: int
     payload: Dict[str, Any]
+    event_id: str
 
 
 def serialize_message(data: dict) -> Union[MessageNew, MessageEvent, None]:

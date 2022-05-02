@@ -27,10 +27,8 @@ def transactions_to_or_whence_step(message: MessageNew):
         return
 
     transactions[message.from_id] = {"from_wallet": payload["UUID"]}
-    bot.vk.messages.send(
-        peer_id=message.peer_id,         
-        random_id=get_random_id(),
-        message=f"Введи ID пользователя в ВК (можно ссылкой) или куда ты хочешь перевести деньги."
+    bot.send_message(message,
+        text=f"Введи ID пользователя в ВК (можно ссылкой) или куда ты хочешь перевести деньги."
     )
     bot.steps.register_next_step_handler(message.from_id, transactions_check_vk_id)
 
@@ -41,9 +39,7 @@ def transactions_check_vk_id(message: MessageNew):
                 if "vk.com/" in url:
                     user = bot.vk.users.get(user_ids=url.split("/")[-1])[0]
                     if not user:
-                        bot.vk.messages.send(
-                            peer_id=message.peer_id,   
-                            random_id=get_random_id(),
+                        bot.send_message(message,
                             message="Ссылка введена неверно или такого пользователя не существует",
                             keyboard=MainKeyboard(True)
                         )
@@ -53,24 +49,21 @@ def transactions_check_vk_id(message: MessageNew):
         else:
             user_id = int(message.text)
         if not is_registered_user(user_id):
-            bot.vk.messages.send(peer_id=message.peer_id,
-                             random_id=get_random_id(),
-                             message="Такой пользователь не зарегистрирован в системе. Возвращаюсь.",
+            bot.send_message(message,
+                             text="Такой пользователь не зарегистрирован в системе. Возвращаюсь.",
                              keyboard=MainKeyboard(True))
             return
         
         wallets, status = wallets_api.get_user_wallets(user_id)
         if status == 200:
             if not wallets:
-                bot.vk.messages.send(peer_id=message.peer_id,
-                             random_id=get_random_id(),
-                             message="У пользователя с таким ID нет кошельков. Возвращаюсь",
-                             keyboard=MainKeyboard(True))
+                bot.send_message(message,
+                                 text="У пользователя с таким ID нет кошельков. Возвращаюсь",
+                                 keyboard=MainKeyboard(True))
                 return
-            bot.vk.messages.send(peer_id=message.peer_id,
-                                 random_id=get_random_id(),
-                                 message="Выбери кошелёк получателя.",
-                                 keyboard=UserWalletsKeyboard(wallets))
+            bot.send_message(message,
+                             text="Выбери кошелёк получателя.",
+                             keyboard=UserWalletsKeyboard(wallets))
             global transactions
             transactions[message.from_id]["recipient_id"] = user_id
             bot.steps.register_next_step_handler(message.from_id, transactions_payment_step)
@@ -91,9 +84,8 @@ def transactions_payment_step(message: MessageNew):
     else:
         transactions[message.from_id]["to_wallet"] = None
         transactions[message.from_id]["whence"] = message.text
-    bot.vk.messages.send(peer_id=message.peer_id,
-                         random_id=get_random_id(),
-                         message="Сколько перевести?")
+    bot.send_message(message,
+                     text="Сколько перевести?")
     bot.steps.register_next_step_handler(message.from_id, transactions_comment_step)
 
 def transactions_comment_step(message: MessageNew):
@@ -104,14 +96,12 @@ def transactions_comment_step(message: MessageNew):
     try:
         transactions[message.from_id]["payment"] = int(message.text)
     except ValueError:
-        bot.vk.messages.send(peer_id=message.peer_id,
-                             random_id=get_random_id(),
-                             message="Количество переводимых средств должно быть целым числом.",
-                             keyboard=MainKeyboard(True))
+        bot.send_message(message,
+                         text="Количество переводимых средств должно быть целым числом.",
+                         keyboard=MainKeyboard(True))
         return
-    bot.vk.messages.send(peer_id=message.peer_id,
-                         random_id=get_random_id(),
-                         message="Оставьте комментарий (введите \"нет\", если не нужно).")
+    bot.send_message(message,
+                     text="Оставьте комментарий (введите \"нет\", если не нужно).")
     bot.steps.register_next_step_handler(message.peer_id, transactions_final_step)
 
 def transactions_final_step(message: MessageNew):
@@ -124,19 +114,18 @@ def transactions_final_step(message: MessageNew):
     else:
         transactions[message.from_id]["comment"] = None
     transaction_data = transactions.pop(message.from_id, None)
-    transaction, status = transactions_api.make_transaction(**transaction_data)
+    _, status = transactions_api.make_transaction(**transaction_data)
     if status == 201:
-        bot.vk.messages.send(peer_id=message.peer_id,
-                             random_id=get_random_id(),
-                             message="Перевод отправлен!",
-                             keyboard=MainKeyboard(True))
+        bot.send_message(message,
+                         text="Перевод отправлен!",
+                         keyboard=MainKeyboard(True))
         if transaction_data["recipient_id"] is not None:
             recipient = bot.vk.users.get(user_ids=message.from_id,
                                      name_case="gen")[0]
-            message = \
+            text = \
 f"""Пополнение на {transaction_data['payment']} от {recipient['first_name']} {recipient['last_name']}
 Комментарий к переводу: {transaction_data['comment']}
 """
-            bot.vk.messages.send(peer_id=transaction_data["recipient_id"],
-                                 random_id=get_random_id(),
-                                 message=message)
+            bot.send_message(message,
+                             text=text,
+                             peer_id=transaction_data["recipient_id"])
