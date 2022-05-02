@@ -41,7 +41,7 @@ def serialize_message(data: dict) -> Union[MessageNew, MessageEvent, None]:
             from_conversation=peer_id != from_id,
             **data["object"]["message"]
         )
-    elif data["type"] == "message_event":
+    if data["type"] == "message_event":
         peer_id = data["object"]["peer_id"]
         user_id = data["object"]["user_id"]
         return MessageEvent(

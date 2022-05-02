@@ -1,9 +1,10 @@
 from fastapi import BackgroundTasks, FastAPI, Request, Response
-from bot.handlers.handler_config import bot
 from bot.handlers import commands_handler, events_handler
 from bot.api.api_requests import UserAPIRequest
 from bot.utils.redis_utils import add_new_users
 from requests.exceptions import ConnectionError
+from bot.handlers.handler_config import bot
+from json.decoder import JSONDecodeError
 from time import sleep
 
 
@@ -39,7 +40,7 @@ async def index(request: Request, background_task: BackgroundTasks):
 
     try:
         data = await request.json()
-    except:
+    except JSONDecodeError:
         return Response("not today", status_code=403)
 
     if data["type"] == "confirmation":
