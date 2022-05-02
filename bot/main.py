@@ -36,7 +36,6 @@ async def shutdown():
 
 @app.post("/")
 async def index(request: Request, background_task: BackgroundTasks):
-    global confirmation_code, secret_key
 
     try:
         data = await request.json()

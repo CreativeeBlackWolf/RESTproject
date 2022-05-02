@@ -45,7 +45,7 @@ def get_user_wallets(event: MessageEvent):
     wallets, status = wallet_api.get_user_wallets(event.user_id)
     if status == 200:
         if not wallets:
-            no_wallets_message(message)
+            no_wallets_message(event)
         else:
             message = "Твои кошельки:\n\n"
             for k, wallet in enumerate(wallets):
