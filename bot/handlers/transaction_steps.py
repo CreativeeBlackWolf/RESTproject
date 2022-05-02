@@ -4,7 +4,6 @@ from bot.utils.redis_utils import is_registered_user
 from bot.handlers.basic_answers import stop_message, wrong_input_message
 from bot.handlers.handler_config import bot
 from bot.schemas.message import MessageNew
-from vk_api.utils import get_random_id
 from bot.utils.check import find_urls
 import json
 
