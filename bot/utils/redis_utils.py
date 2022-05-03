@@ -9,6 +9,9 @@ redis_db = redis.StrictRedis(host=config.host,
                              decode_responses=True,
                              charset="utf-8")
 
+def delete_key(key: str):
+    return redis_db.delete(key)
+
 def get_registered_users() -> Set[str]:
     return redis_db.smembers("registered_users")
 

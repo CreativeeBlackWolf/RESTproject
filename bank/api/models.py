@@ -15,14 +15,14 @@ class Wallet(models.Model):
     """
     id: UUID PK
     user: FOREIGN KEY (Users)
-    name: CHAR(128)
+    name: CHAR(32)
     cash: INTEGER
     """
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, 
                           verbose_name="Wallet ID")
     user = models.ForeignKey(User, on_delete=models.PROTECT, 
                              verbose_name="User")
-    name = models.CharField(max_length=128, unique=True, 
+    name = models.CharField(max_length=32, unique=True, 
                             verbose_name="Wallet name")
     balance = models.IntegerField(default=10000)
 

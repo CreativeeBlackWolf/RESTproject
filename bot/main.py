@@ -1,7 +1,8 @@
 from fastapi import BackgroundTasks, FastAPI, Request, Response
 from bot.handlers import commands_handler, events_handler
 from bot.api.api_requests import UserAPIRequest
-from bot.utils.redis_utils import add_new_users
+from bot.utils.redis_utils import add_new_users, delete_key
+from requests.exceptions import ConnectionError # noqa
 from bot.handlers.handler_config import bot
 from json.decoder import JSONDecodeError
 from time import sleep
@@ -24,6 +25,7 @@ async def startup():
             print("cannot get to API server. retry...")
             sleep(2)
     if status == 200:
+        delete_key("registered_users")
         for u in users:
             add_new_users(u["id"])
     confirmation_code, secret = bot.setup_bot()
