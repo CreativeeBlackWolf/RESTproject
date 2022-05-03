@@ -23,3 +23,8 @@ def wrong_input_message(message: Union[MessageNew, MessageEvent]):
     bot.send_message(message,
                      text="Неверный ввод. Выбери нужный пункт на клавиатуре.",
                      keyboard=MainKeyboard(True))
+
+def not_registered_message(message: Union[MessageNew, MessageEvent]):
+    bot.send_message(message,
+                     text="Ты не зарегистрирован в системе",
+                     keyboard=MainKeyboard())

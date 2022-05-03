@@ -1,3 +1,4 @@
+from bot.handlers.basic_answers import not_registered_message
 from bot.utils.keyboard import MainKeyboard, WalletsKeyboard, TransactionsKeyboard
 from bot.utils.redis_utils import is_registered_user
 from bot.handlers.handler_config import bot
@@ -19,13 +20,19 @@ def hello_command(message: MessageNew):
 
 @bot.commands.handle_command(text="Кошельки")
 def wallets_keyboard(message: MessageNew):
+    if not is_registered_user(message.from_id):
+        not_registered_message(message)
+        return
     bot.send_message(message,
-                     text="Методы кошельков",
-                     keyboard=WalletsKeyboard())
+                    text="Методы кошельков",
+                    keyboard=WalletsKeyboard())
 
 
 @bot.commands.handle_command(text="Транзакции")
 def transactions_keyboard(message: MessageNew):
+    if not is_registered_user(message.from_id):
+        not_registered_message(message)
+        return
     bot.send_message(message, 
                      text="Методы транзакций",
                      keyboard=TransactionsKeyboard())
