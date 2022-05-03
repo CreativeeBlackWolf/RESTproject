@@ -38,7 +38,7 @@ def transactions_check_vk_id(message: MessageNew):
             user = bot.vk.users.get(user_ids=urls[0].split("/")[-1])
             if not user:
                 bot.send_message(message,
-                    message="Ссылка введена неверно или такого пользователя не существует",
+                    text="Ссылка введена неверно или такого пользователя не существует",
                     keyboard=MainKeyboard(True)
                 )
                 return
