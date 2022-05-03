@@ -51,7 +51,7 @@ def transactions_check_vk_id(message: MessageNew):
                              text="Такой пользователь не зарегистрирован в системе. Возвращаюсь.",
                              keyboard=MainKeyboard(True))
             return
-        
+
         wallets, status = wallets_api.get_user_wallets(user_id)
         if status == 200:
             if not wallets:
@@ -62,7 +62,7 @@ def transactions_check_vk_id(message: MessageNew):
             bot.send_message(message,
                              text="Выбери кошелёк получателя.",
                              keyboard=UserWalletsKeyboard(wallets, show_balance=False))
-    
+
             transactions[message.from_id]["recipient_id"] = user_id
             bot.steps.register_next_step_handler(message.from_id, transactions_payment_step)
     except ValueError:
@@ -74,7 +74,7 @@ def transactions_payment_step(message: MessageNew):
         stop_message(message)
         return
     # if uuid is given
-    if message.payload:    
+    if message.payload:
         payload = json.loads(message.payload)
         transactions[message.from_id]["to_wallet"] = payload["UUID"]
         transactions[message.from_id]["whence"] = None

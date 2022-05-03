@@ -16,7 +16,7 @@ class Transaction(BaseModel):
 
 
 class Wallet(BaseModel):
-    pk: UUID      # primary key => id of wallet 
+    pk: UUID      # primary key => id of wallet
     name: str
     user: int     # user id
     balance: int
