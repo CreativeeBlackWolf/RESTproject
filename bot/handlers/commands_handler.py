@@ -7,7 +7,7 @@ from bot.schemas.message import MessageNew
 
 @bot.commands.default_handler
 def default(message: MessageNew):
-    bot.send_message(message, 
+    bot.send_message(message,
                      text="что.",
                      keyboard=MainKeyboard(is_registered_user(message.from_id)))
 
@@ -33,6 +33,6 @@ def transactions_keyboard(message: MessageNew):
     if not is_registered_user(message.from_id):
         not_registered_message(message)
         return
-    bot.send_message(message, 
+    bot.send_message(message,
                      text="Методы транзакций",
                      keyboard=TransactionsKeyboard())

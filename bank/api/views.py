@@ -1,7 +1,6 @@
-from django.forms import ValidationError
-from .serializers import (TransactionCashActionsSerializer, 
-                          UserSerializer, 
-                          WalletSerializer, 
+from .serializers import (TransactionCashActionsSerializer,
+                          UserSerializer,
+                          WalletSerializer,
                           TransactionSerializer)
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, mixins, status
@@ -37,7 +36,7 @@ class TransactionAPIViewSet(mixins.CreateModelMixin,
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        
+
         result = Transaction.make_transaction(**serializer.validated_data)
         if isinstance(result, dict):
             return Response(result, status=status.HTTP_400_BAD_REQUEST)
@@ -48,7 +47,7 @@ class TransactionAPIViewSet(mixins.CreateModelMixin,
     def ATM_action(self, request):
         serializer = TransactionCashActionsSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        
+
         result = Transaction.make_transaction(**serializer.validated_data)
         if isinstance(result, dict):
             return Response(result, status=status.HTTP_400_BAD_REQUEST)
