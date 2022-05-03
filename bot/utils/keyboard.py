@@ -1,4 +1,6 @@
 from vk_api.keyboard import VkKeyboard, VkKeyboardColor
+from bot.schemas.models import Wallet
+from typing import List
 
 
 def EmptyKeyboard():
@@ -55,17 +57,6 @@ def TransactionsKeyboard():
     keyboard = BackButton(keyboard)
     return keyboard.get_keyboard()
 
-def UserWalletsKeyboard(wallets: list):
-    keyboard = VkKeyboard(one_time=True)
-    for k, wallet in enumerate(wallets):
-        keyboard.add_button(label=f"{wallet['name']} | Баланс: {wallet['balance']}",
-                            color=VkKeyboardColor.POSITIVE,
-                            payload={"UUID": wallet["pk"]})
-        if k != len(wallets) - 1:
-            keyboard.add_line()
-
-    return keyboard.get_keyboard()
-
 def EditWalletsKeyboard():
     keyboard = VkKeyboard(one_time=True)
     keyboard.add_callback_button(label="Редактировать кошелёк",
@@ -77,4 +68,24 @@ def EditWalletsKeyboard():
                                  payload={"cmd": "delete_wallet"})
 
     keyboard = BackButton(keyboard)
+    return keyboard.get_keyboard()
+
+def UserWalletsKeyboard(wallets: List[Wallet], show_balance: bool=True):
+    keyboard = VkKeyboard(one_time=True)
+    for k, wallet in enumerate(wallets):
+        if not show_balance:
+            label = wallet.name
+        else:
+            if len(wallet.name) > 20:
+                wallet.name = wallet.name[:15] + "..."
+            label = label=f"{wallet.name} | Баланс: {wallet.balance}"
+
+        keyboard.add_button(label=label,
+                            color=VkKeyboardColor.POSITIVE,
+                            payload={"UUID": str(wallet.pk)})
+
+        # do not add line if iterated wallet is last
+        if k != len(wallets) - 1:
+            keyboard.add_line()
+
     return keyboard.get_keyboard()

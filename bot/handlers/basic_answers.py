@@ -1,5 +1,5 @@
 from typing import Union
-from bot.utils.keyboard import MainKeyboard, TransactionsKeyboard
+from bot.utils.keyboard import MainKeyboard, WalletsKeyboard
 from bot.handlers.handler_config import bot
 from bot.schemas.message import MessageEvent, MessageNew
 
@@ -17,7 +17,7 @@ def error_message(message: Union[MessageNew, MessageEvent], error_message: str):
 def no_wallets_message(message: Union[MessageNew, MessageEvent]):
     bot.send_message(message,
                      text="Пока что у тебя нет кошельков.",
-                     keyboard=TransactionsKeyboard())
+                     keyboard=WalletsKeyboard())
 
 def wrong_input_message(message: Union[MessageNew, MessageEvent]):
     bot.send_message(message,

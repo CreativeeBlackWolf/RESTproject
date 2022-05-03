@@ -51,9 +51,9 @@ def get_user_wallets(event: MessageEvent):
             for k, wallet in enumerate(wallets):
                 message += \
 f"""
-{k+1}) Уникальный идентификатор: {wallet["pk"]}
-| Название: {wallet["name"]}
-| Баланс: {wallet["balance"]}
+{k+1}) Уникальный идентификатор: {wallet.pk}
+| Название: {wallet.name}
+| Баланс: {wallet.balance}
 """
             bot.send_message(event,
                              text=message,
@@ -92,18 +92,18 @@ def show_latest_transactions(event: MessageEvent):
         else:
             message = "Переводы:\n-----------------"
             for transaction in user_transactions:
-                date = datetime.strptime(transaction["date"], "%Y-%m-%dT%H:%M:%S.%f%z")
+                date = datetime.strptime(transaction.date, "%Y-%m-%dT%H:%M:%S.%f%z")
                 formatted_date = date.strftime("%d %B %Y %H:%M:%S")
                 message += \
 f"""
-Из кошелька: {transaction["from_wallet_name"]}
-Кому: {transaction["to_wallet_user"] if transaction["to_wallet_user"] is not None
+Из кошелька: {transaction.from_wallet_name}
+Кому: {transaction.to_wallet_user if transaction.to_wallet_user is not None
 else "<Сторонний сервис>"}
-Куда: {transaction["whence"] if transaction["whence"] is not None
-       else "на кошелёк " + transaction["to_wallet_name"]}
-Размер платежа: {transaction["payment"]}
+Куда: {transaction.whence if transaction.whence is not None
+       else "на кошелёк " + transaction.to_wallet_name}
+Размер платежа: {transaction.payment}
 Когда: {formatted_date}
-Комментарий к переводу: {transaction["comment"] if transaction["comment"]
+Комментарий к переводу: {transaction.comment if transaction.comment
                          else "<Без комментария>"}
 -----------------"""
 
@@ -133,7 +133,7 @@ def edit_user_wallet(event: MessageEvent):
     if status == 200:
         bot.send_message(event,
                          text="Выбери кошелёк из списка",
-                         keyboard=UserWalletsKeyboard(wallets))
+                         keyboard=UserWalletsKeyboard(wallets, show_balance=False))
         if event.payload["cmd"] == "edit_wallet":
             bot.steps.register_next_step_handler(event.user_id, edit_choice_step)
         else:

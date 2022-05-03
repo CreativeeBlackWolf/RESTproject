@@ -1,7 +1,7 @@
 from bot.api.api_requests import WalletAPIRequest, TransactionsAPIRequest
 from bot.utils.keyboard import MainKeyboard, UserWalletsKeyboard
 from bot.utils.redis_utils import is_registered_user
-from bot.handlers.basic_answers import stop_message, wrong_input_message
+from bot.handlers.basic_answers import error_message, stop_message, wrong_input_message
 from bot.handlers.handler_config import bot
 from bot.schemas.message import MessageNew
 from bot.utils.check import find_urls
@@ -32,20 +32,20 @@ def transactions_to_or_whence_step(message: MessageNew):
 
 def transactions_check_vk_id(message: MessageNew):
     try:
-        if urls := find_urls(message.text):
-            for url in urls:
-                if "vk.com/" in url:
-                    user = bot.vk.users.get(user_ids=url.split("/")[-1])[0]
-                    if not user:
-                        bot.send_message(message,
-                            message="Ссылка введена неверно или такого пользователя не существует",
-                            keyboard=MainKeyboard(True)
-                        )
-                        return
-                    user_id = user["id"]
-
+        urls = find_urls(message.text, template="vk.com/")
+        if urls:
+            #                          taking only first url
+            user = bot.vk.users.get(user_ids=urls[0].split("/")[-1])
+            if not user:
+                bot.send_message(message,
+                    message="Ссылка введена неверно или такого пользователя не существует",
+                    keyboard=MainKeyboard(True)
+                )
+                return
+            user_id = user[0]["id"]
         else:
             user_id = int(message.text)
+
         if not is_registered_user(user_id):
             bot.send_message(message,
                              text="Такой пользователь не зарегистрирован в системе. Возвращаюсь.",
@@ -61,7 +61,7 @@ def transactions_check_vk_id(message: MessageNew):
                 return
             bot.send_message(message,
                              text="Выбери кошелёк получателя.",
-                             keyboard=UserWalletsKeyboard(wallets))
+                             keyboard=UserWalletsKeyboard(wallets, show_balance=False))
     
             transactions[message.from_id]["recipient_id"] = user_id
             bot.steps.register_next_step_handler(message.from_id, transactions_payment_step)
@@ -91,9 +91,11 @@ def transactions_comment_step(message: MessageNew):
         return
     try:
         transactions[message.from_id]["payment"] = int(message.text)
+        if transactions[message.from_id]["payment"] <= 0:
+            raise ValueError
     except ValueError:
         bot.send_message(message,
-                         text="Количество переводимых средств должно быть целым числом.",
+                         text="Количество переводимых средств должно быть целым положительным числом.",
                          keyboard=MainKeyboard(True))
         return
     bot.send_message(message,
@@ -106,10 +108,15 @@ def transactions_final_step(message: MessageNew):
         return
     if message.text.lower() not in ("нет", "н", "no", "n"):
         transactions[message.from_id]["comment"] = message.text
+        if len(transactions[message.from_id]["comment"]) > 128:
+            bot.send_message(message,
+                             text="Количество символов в комментарии не должно привышать 128 символов",
+                             keyboard=MainKeyboard(True))
+            return
     else:
         transactions[message.from_id]["comment"] = None
     transaction_data = transactions.pop(message.from_id, None)
-    _, status = transactions_api.make_transaction(**transaction_data)
+    transaction, status = transactions_api.make_transaction(**transaction_data)
     if status == 201:
         bot.send_message(message,
                          text="Перевод отправлен!",
@@ -117,10 +124,13 @@ def transactions_final_step(message: MessageNew):
         if transaction_data["recipient_id"] is not None:
             recipient = bot.vk.users.get(user_ids=message.from_id,
                                      name_case="gen")[0]
+            sender_name = f"{recipient['first_name']} {recipient['last_name']}"
             text = \
-f"""Пополнение на {transaction_data['payment']} от {recipient['first_name']} {recipient['last_name']}
-Комментарий к переводу: {transaction_data['comment']}
+f"""Пополнение `{transaction.to_wallet_name}`: +{transaction.payment} от {sender_name}
+Комментарий к переводу: {transaction.comment}
 """
             bot.send_message(message,
                              text=text,
                              peer_id=transaction_data["recipient_id"])
+    elif status == 400:
+        error_message(message, transaction)

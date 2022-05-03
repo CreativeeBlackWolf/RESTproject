@@ -1,5 +1,5 @@
 from fastapi import BackgroundTasks, FastAPI, Request, Response
-from bot.handlers import commands_handler, events_handler
+from bot.handlers import commands_handler, events_handler # noqa
 from bot.api.api_requests import UserAPIRequest
 from bot.utils.redis_utils import add_new_users, delete_key
 from requests.exceptions import ConnectionError # noqa

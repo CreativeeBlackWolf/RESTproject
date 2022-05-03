@@ -1,6 +1,8 @@
 from requests.adapters import HTTPAdapter
-from typing import Optional, Tuple, List
+from typing import Optional, Tuple, List, Union
 from bot.settings import get_api_settings
+from bot.schemas.models import (Transaction, serialize_transaction,
+                                Wallet, serialize_wallet)
 from uuid import UUID
 import requests
 
@@ -37,27 +39,38 @@ class WalletAPIRequest(DefaultAPIRequest):
         super().__init__()
         self.wallets_url = self.default_url + "wallets/"
 
-    def get_user_wallets(self, user_id: int) -> Tuple[List[dict], int]:
+    def get_user_wallets(self, user_id: int) -> Tuple[Union[List[Wallet], dict], int]:
         request = self.session.get(self.wallets_url + f"?user={user_id}")
-        return request.json(), request.status_code
+        if request.status_code != 200:
+            return request.json(), request.status_code
+        return serialize_wallet(request.json()), request.status_code
 
-    def create_new_wallet(self, user_id: int, wallet_name: str) -> Tuple[dict, int]:
+    def create_new_wallet(self, user_id: int, wallet_name: str) -> Tuple[Union[Wallet, dict], int]:
         data = {
             "user": user_id,
             "name": wallet_name
         }
         request = self.session.post(self.wallets_url, data=data)
-        return request.json(), request.status_code
+        if request.status_code != 201:
+            return request.json(), request.status_code
+        return serialize_wallet(request.json()), request.status_code
 
-    def edit_user_wallet(self, wallet: UUID, new_name: str, user_id: int) -> Tuple[dict, int]:
+    def edit_user_wallet(
+        self,
+        wallet: UUID,
+        new_name: str,
+        user_id: int
+    ) -> Tuple[Union[Wallet, dict], int]:
         data = {
             "name": new_name,
             "user": user_id
         }
         request = self.session.put(self.wallets_url + f"{wallet}/", data=data)
-        return request.json(), request.status_code
+        if request.status_code != 200:
+            return request.json(), request.status_code
+        return serialize_wallet(request.json()), request.status_code
 
-    def delete_wallet(self, wallet: UUID):
+    def delete_wallet(self, wallet: UUID) -> int:
         request = self.session.delete(self.wallets_url + f"{wallet}/")
         return request.status_code
 
@@ -74,7 +87,7 @@ class TransactionsAPIRequest(DefaultAPIRequest):
         whence: str = None,
         comment: Optional[str] = None,
         *args, **kwargs
-    ) -> Tuple[dict, int]:
+    ) -> Tuple[Union[Transaction, dict], int]:
         if (to_wallet and whence) or (to_wallet is None and whence is None):
             raise TypeError("One of fields 'from_wallet' or 'whence' must have a value, neither both nor none of them.")
         data = {
@@ -85,8 +98,10 @@ class TransactionsAPIRequest(DefaultAPIRequest):
             "comment": comment,
         }
         request = self.session.post(self.transactions_api, data=data)
-        return request.json(), request.status_code
+        if request.status_code == 400:
+            return request.json(), request.status_code
+        return serialize_transaction(request.json()), request.status_code
 
-    def get_user_transactions(self, user_id: int, limit: int=5) -> Tuple[List[dict], int]:
+    def get_user_transactions(self, user_id: int, limit: int=5) -> Tuple[Transaction, int]:
         request = self.session.get(self.transactions_api + f"?from_user={user_id}")
-        return request.json()[:limit], request.status_code
+        return serialize_transaction(request.json())[:limit], request.status_code
