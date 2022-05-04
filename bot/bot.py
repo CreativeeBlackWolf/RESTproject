@@ -1,12 +1,11 @@
 from bot.schemas.message import (MessageEvent, MessageNew,
                                 serialize_message, MessageEventTypes)
-from string import ascii_lowercase, ascii_uppercase
-from bot.commands.step_handler import StepHandler
 from typing import Any, Dict, List, Tuple, Union, Optional
+from bot.commands.step_handler import StepHandler
 from bot.commands.handler import BotCommands
 from vk_api.utils import get_random_id
+from secrets import token_urlsafe
 from vk_api import vk_api
-from random import choice
 
 
 class Bot:
@@ -31,8 +30,7 @@ class Bot:
 
     @staticmethod
     def __generate_secret_key() -> str:
-        # pseudorandom generation of secret. redo?
-        return "".join([choice(ascii_lowercase + ascii_uppercase) for _ in range(32)])
+        return token_urlsafe(32)
 
     def __get_group_id(self) -> None:
         return self.api.method("groups.getById", values={})[0]["id"]
