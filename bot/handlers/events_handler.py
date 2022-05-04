@@ -83,22 +83,31 @@ def make_transaction(event: MessageEvent):
             no_wallets_message(event)
 
 
-@bot.commands.handle_event(event="show_transactions")
+@bot.commands.handle_event(event=["show_outcoming_transactions", "show_incoming_transactions"])
 def show_latest_transactions(event: MessageEvent):
-    user_transactions, status = transaction_api.get_user_transactions(event.user_id)
+    incoming = True if event.payload["cmd"] == "show_incoming_transactions" else False
+    user_transactions, status = transaction_api.get_user_transactions(
+        event.user_id,
+        incoming=incoming
+    )
     if status == 200:
         if not user_transactions:
-            message = "Ты пока что не совершал переводов."
+            message = "Ты пока что не совершал переводов." if not incoming \
+                      else "Тебе пока что не отправляли переводов."
         else:
             message = "Переводы:\n-----------------"
             for transaction in user_transactions:
                 date = datetime.strptime(transaction.date, "%Y-%m-%dT%H:%M:%S.%f%z")
                 formatted_date = date.strftime("%d %B %Y %H:%M:%S")
-                message += \
-f"""
+                if incoming:
+                    message += f"\nОтправитель: {transaction.from_wallet_user}"
+                else:
+                    message += f"""
 Из кошелька: {transaction.from_wallet_name}
 Кому: {transaction.to_wallet_user if transaction.to_wallet_user is not None
-else "<Сторонний сервис>"}
+       else "<Сторонний сервис>"}"""
+
+                message += f"""
 Куда: {transaction.whence if transaction.whence is not None
        else "на кошелёк " + transaction.to_wallet_name}
 Размер платежа: {transaction.payment}

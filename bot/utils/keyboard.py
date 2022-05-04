@@ -46,8 +46,11 @@ def WalletsKeyboard():
 
 def TransactionsKeyboard():
     keyboard = VkKeyboard()
-    keyboard.add_callback_button(label="Просмотреть последние транзакции",
-                                 payload={"cmd": "show_transactions"},
+    keyboard.add_callback_button(label="Исходящие транзакции",
+                                 payload={"cmd": "show_outcoming_transactions"},
+                                 color=VkKeyboardColor.PRIMARY)
+    keyboard.add_callback_button(label="Входящие транзакции",
+                                 payload={"cmd": "show_incoming_transactions"},
                                  color=VkKeyboardColor.PRIMARY)
     keyboard.add_line()
     keyboard.add_callback_button(label="Перевести деньги",
@@ -73,16 +76,21 @@ def EditWalletsKeyboard():
 def UserWalletsKeyboard(wallets: List[Wallet], show_balance: bool=True):
     keyboard = VkKeyboard(one_time=True)
     for k, wallet in enumerate(wallets):
+        payload = {}
+        
         if not show_balance:
             label = wallet.name
         else:
             if len(wallet.name) > 20:
                 wallet.name = wallet.name[:15] + "..."
             label = label=f"{wallet.name} | Баланс: {wallet.balance}"
+            payload["balance"] = wallet.balance
+
+        payload["UUID"] = str(wallet.pk)
 
         keyboard.add_button(label=label,
                             color=VkKeyboardColor.POSITIVE,
-                            payload={"UUID": str(wallet.pk)})
+                            payload=payload)
 
         # do not add line if iterated wallet is last
         if k != len(wallets) - 1:

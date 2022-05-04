@@ -24,7 +24,10 @@ def transactions_to_or_whence_step(message: MessageNew):
         wrong_input_message(message)
         return
 
-    transactions[message.from_id] = {"from_wallet": payload["UUID"]}
+    transactions[message.from_id] = {
+        "from_wallet": payload["UUID"],
+        "balance": payload["balance"]
+    }
     bot.send_message(message,
         text="Введи ID пользователя в ВК (можно ссылкой) или куда ты хочешь перевести деньги."
     )
@@ -93,6 +96,11 @@ def transactions_comment_step(message: MessageNew):
         transactions[message.from_id]["payment"] = int(message.text)
         if transactions[message.from_id]["payment"] <= 0:
             raise ValueError
+        if transactions[message.from_id]["balance"] < transactions[message.from_id]["payment"]:
+            bot.send_message(message,
+                             text="Недостаточно средств. Возвращаюсь.",
+                             keyboard=MainKeyboard(True))
+            return
     except ValueError:
         bot.send_message(message,
                          text="Количество переводимых средств должно быть целым положительным числом.",
@@ -121,6 +129,8 @@ def transactions_final_step(message: MessageNew):
         bot.send_message(message,
                          text="Перевод отправлен!",
                          keyboard=MainKeyboard(True))
+
+        # if the payment was sent to the user
         if transaction_data["recipient_id"] is not None:
             recipient = bot.vk.users.get(user_ids=message.from_id,
                                      name_case="gen")[0]

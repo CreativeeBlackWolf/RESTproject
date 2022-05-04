@@ -102,6 +102,9 @@ class TransactionsAPIRequest(DefaultAPIRequest):
             return request.json(), request.status_code
         return serialize_transaction(request.json()), request.status_code
 
-    def get_user_transactions(self, user_id: int, limit: int=5) -> Tuple[Transaction, int]:
-        request = self.session.get(self.transactions_api + f"?from_user={user_id}")
+    def get_user_transactions(self, user_id: int, limit: int=5, incoming=False) -> Tuple[Transaction, int]:
+        if not incoming:
+            request = self.session.get(self.transactions_api + f"?from_user={user_id}")
+        else:
+            request = self.session.get(self.transactions_api + f"?to_user={user_id}")
         return serialize_transaction(request.json())[:limit], request.status_code

@@ -6,6 +6,7 @@ from uuid import UUID
 class Transaction(BaseModel):
     from_wallet: UUID
     from_wallet_name: str
+    from_wallet_user: str
     to_wallet: Optional[UUID] = None
     to_wallet_name: Optional[str] = None
     to_wallet_user: Optional[str] = None
