@@ -77,7 +77,7 @@ def UserWalletsKeyboard(wallets: List[Wallet], show_balance: bool=True):
     keyboard = VkKeyboard(one_time=True)
     for k, wallet in enumerate(wallets):
         payload = {}
-        
+
         if not show_balance:
             label = wallet.name
         else:
