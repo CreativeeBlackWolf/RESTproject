@@ -19,6 +19,7 @@ class WalletSerializer(serializers.ModelSerializer):
 
 class TransactionSerializer(serializers.ModelSerializer):
     from_wallet_name = serializers.CharField(source="from_wallet.name", read_only=True)
+    from_wallet_user = serializers.CharField(source="from_wallet.user.user", read_only=True)
     to_wallet_name = serializers.CharField(source="to_wallet.name",
                                            allow_null=True,
                                            read_only=True)
@@ -27,7 +28,7 @@ class TransactionSerializer(serializers.ModelSerializer):
                                            read_only=True)
     class Meta:
         model = Transaction
-        fields = ("from_wallet", "from_wallet_name", "to_wallet",
+        fields = ("from_wallet", "from_wallet_name", "from_wallet_user", "to_wallet",
                   "to_wallet_name", "to_wallet_user", "whence", "date",
                   "payment", "comment", "id")
         read_only_fields = ("id", )
