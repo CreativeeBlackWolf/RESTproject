@@ -4,8 +4,9 @@ import uuid
 
 class User(models.Model):
     """user: CHAR(128)"""
-    user = models.CharField(max_length=128, unique=True, 
-                            verbose_name="Username")
+
+    vk_id = models.IntegerField(blank=True, null=True, verbose_name="VK ID", unique=True)
+    user = models.CharField(max_length=128, verbose_name="Username")
 
     def __str__(self):
         return f"({self.pk}) {self.user}"
@@ -15,14 +16,14 @@ class Wallet(models.Model):
     """
     id: UUID PK
     user: FOREIGN KEY (Users)
-    name: CHAR(128)
+    name: CHAR(32)
     cash: INTEGER
     """
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, 
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False,
                           verbose_name="Wallet ID")
-    user = models.ForeignKey(User, on_delete=models.PROTECT, 
+    user = models.ForeignKey(User, on_delete=models.PROTECT,
                              verbose_name="User")
-    name = models.CharField(max_length=128, unique=True, 
+    name = models.CharField(max_length=32, unique=True,
                             verbose_name="Wallet name")
     balance = models.IntegerField(default=10000)
 
@@ -42,19 +43,19 @@ class Transaction(models.Model):
     # constants
     DEPOSIT = "ATM Deposit"
     WITHDRAW = "ATM Withdraw"
-    
+
     # model fields
-    from_wallet = models.ForeignKey(Wallet, 
-                                    on_delete=models.CASCADE, 
+    from_wallet = models.ForeignKey(Wallet,
+                                    on_delete=models.CASCADE,
                                     related_name="from_wallet",
                                     verbose_name="Initializer Wallet")
-    to_wallet = models.ForeignKey(Wallet, 
-                                  on_delete=models.CASCADE, 
+    to_wallet = models.ForeignKey(Wallet,
+                                  on_delete=models.CASCADE,
                                   related_name="to_wallet",
                                   blank=True,
                                   null=True,
                                   verbose_name="Recipient Wallet")
-    # откуда/куда пришла транзакция 
+    # откуда/куда пришла транзакция
     whence = models.CharField(max_length=128,
                               null=True,
                               blank=True,
@@ -66,7 +67,7 @@ class Transaction(models.Model):
     class Meta:
         constraints = [
             models.CheckConstraint(
-                # одно из полей 
+                # одно из полей
                 # (в кошелёк или куда/откуда) должно быть заполнено
                 # но не оба
                 name="%(app_label)s_%(class)s_to_wallet_or_not",
@@ -101,7 +102,7 @@ class Transaction(models.Model):
                 comment=comment
             )
             return trans
-            
+
         # перевод средств на другой кошелёк
         if to_wallet:
             if from_wallet.balance < payment:
