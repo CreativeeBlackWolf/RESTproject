@@ -14,6 +14,8 @@ from .models import User, Wallet, Transaction
 class UserAPIViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+    filter_backends = (DjangoFilterBackend, )
+    filterset_fields = "__all__"
 
 
 class WalletAPIViewSet(viewsets.ModelViewSet):
